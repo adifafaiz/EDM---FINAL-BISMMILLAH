@@ -11,15 +11,21 @@
     { username: 'operator', password: 'ops2024', name: 'Operator EDM', role: 'Operator' },
   ]
 
-  const STEPS = [
-    { n: 1, label: 'Masuk dengan akun Anda' },
-    { n: 2, label: 'Akses dashboard operasional' },
-    { n: 3, label: 'Monitor & kelola task harian' },
+  const ROLES = [
+    { value: 'super-admin', label: 'Super Admin' },
+    { value: 'operator', label: 'Operator' },
   ]
 
+  const FEATURES = [
+    { label: 'Real-time', color: '#7c8cf8' },
+    { label: 'Analytics', color: '#34d399' },
+    { label: 'Terintegrasi', color: '#f59e0b' },
+  ]
+
+  let role = $state('')
   let username = $state('')
   let password = $state('')
-  let remember = $state(false)
+  let remember = $state(true)
   let showPassword = $state(false)
   let loading = $state(false)
   let errorMsg = $state('')
@@ -60,44 +66,77 @@
       }, 600)
     }
   }
-
-  function fillDemo(u) {
-    username = u.username
-    password = u.password
-    errorMsg = ''
-  }
 </script>
 
 <div class="login-page" in:fade={{ duration: 320 }}>
   <div class="login-frame" class:shake in:fly={{ y: 18, duration: 420 }}>
     <!-- ── Left brand panel ── -->
     <aside class="brand-panel" aria-label="EDM Task Monitoring">
+      <div class="brand-grid" aria-hidden="true"></div>
       <div class="brand-glow" aria-hidden="true"></div>
       <div class="brand-glow-2" aria-hidden="true"></div>
+      <div class="brand-glow-3" aria-hidden="true"></div>
+      <div class="brand-edge-line" aria-hidden="true"></div>
+      <div class="brand-watermark" aria-hidden="true">
+        <img src={logoLight} alt="" />
+      </div>
+      <div class="brand-ring" aria-hidden="true"></div>
+      <div class="brand-diamond" aria-hidden="true"></div>
 
       <div class="brand-top">
-        <img src={logoLight} alt="EDM Task Monitoring" class="brand-logo" />
+        <span class="live-badge">
+          <span class="live-dot" aria-hidden="true"></span>
+          Operation Monitoring <span class="dot-sep">•</span> Live
+        </span>
+        <div class="progress-bars" aria-hidden="true">
+          <span class="bar bar-active"></span>
+          <span class="bar"></span>
+        </div>
       </div>
 
       <div class="brand-copy">
-        <span class="brand-badge">Operation Monitoring</span>
-        <h1 class="brand-title">Mulai pantau<br />operasi Anda</h1>
-        <p class="brand-sub">Masuk untuk mengakses dashboard, task board, dan activity log tim.</p>
+        <h1 class="brand-title">Kelola Tugas,<br />Tingkatkan Produktivitas</h1>
+        <p class="brand-sub">
+          Pantau, kelola, dan capai target tim Anda dalam satu platform yang terintegrasi secara
+          real-time.
+        </p>
+
+        <div class="brand-tags" role="list">
+          {#each FEATURES as f}
+            <span class="feature-pill" role="listitem">
+              <span class="feature-dot" style="background:{f.color}" aria-hidden="true"></span>
+              {f.label}
+            </span>
+          {/each}
+        </div>
       </div>
 
-      <div class="brand-steps" role="list">
-        {#each STEPS as step, i}
-          <div
-            class="step-card"
-            class:active={i === 0}
-            role="listitem"
-            style="animation-delay: {120 + i * 80}ms"
-          >
-            <span class="step-num">{step.n}</span>
-            <span class="step-label">{step.label}</span>
-          </div>
-        {/each}
-      </div>
+      <footer class="brand-foot">
+        <span class="foot-icon">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="9" cy="8.5" r="2.6" stroke="currentColor" stroke-width="1.6" />
+            <path
+              d="M4.5 18c.6-2.6 2.3-4 4.5-4s3.9 1.4 4.5 4M15 9.2c1.5.2 2.6 1.1 3 3.3"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+            />
+          </svg>
+        </span>
+        <span class="foot-icon">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M3 12h3.5l2-5 4 10 2-7 1.5 2H21"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </span>
+        <span class="foot-text">COPYRIGHT EDM TASK MONITOR &ndash; {new Date().getFullYear()}</span>
+        <span class="foot-line" aria-hidden="true"></span>
+      </footer>
     </aside>
 
     <!-- ── Right form panel ── -->
@@ -109,7 +148,52 @@
           <p class="form-sub">Masuk ke akun EDM Task Monitoring Anda</p>
         </header>
 
+        <span class="dash-tag">
+          <span class="dash-dot" aria-hidden="true"></span>
+          Task Monitoring Dashboard
+        </span>
+
         <form class="form" onsubmit={handleLogin} novalidate>
+          <div class="field">
+            <label for="role">Pilih Role</label>
+            <div class="input-shell select-shell">
+              <span class="input-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <circle cx="9" cy="8" r="2.6" stroke="currentColor" stroke-width="1.7" />
+                  <path
+                    d="M4 18c.6-2.6 2.3-4 5-4s4.4 1.4 5 4"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M15 5.3c1.6.35 2.7 1.5 2.7 3.2 0 1.3-.66 2.3-1.66 2.86M17 13.4c1.9.5 3 1.9 3 4.1"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </span>
+              <select id="role" bind:value={role} disabled={loading} required>
+                <option value="" disabled selected>Pilih role</option>
+                {#each ROLES as r}
+                  <option value={r.value}>{r.label}</option>
+                {/each}
+              </select>
+              <span class="chevron" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M6 9l6 6 6-6"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+            </div>
+          </div>
+
           <div class="field" class:on={focused === 'username'}>
             <label for="username">Username</label>
             <div class="input-shell">
@@ -224,29 +308,34 @@
             </div>
           {/if}
 
-          <button type="submit" class="btn-primary" disabled={loading || !username || !password} aria-busy={loading}>
+          <button
+            type="submit"
+            class="btn-primary"
+            disabled={loading || !role || !username || !password}
+            aria-busy={loading}
+          >
             {#if loading}
               <span class="spinner" aria-hidden="true"></span>
               Memverifikasi…
             {:else}
-              Masuk
+              Masuk ke Dashboard
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M5 12h14M13 6l6 6-6 6"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
             {/if}
           </button>
         </form>
 
-        <div class="divider"><span>Akun demo</span></div>
-
-        <div class="demo-list">
-          {#each DUMMY_USERS as u}
-            <button type="button" class="demo-chip" onclick={() => fillDemo(u)} disabled={loading}>
-              <span class="demo-user">{u.username}</span>
-              <span class="demo-role">{u.role}</span>
-            </button>
-          {/each}
-        </div>
+        <div class="divider"><span>EDM</span></div>
 
         <p class="form-foot">
-          © {new Date().getFullYear()} PT Energia Digital Mandiri
+          Task Monitoring System <br />Hubungi admin untuk bantuan akses.
         </p>
       </div>
     </section>
@@ -257,13 +346,7 @@
   .login-page {
     min-height: 100vh;
     display: grid;
-    place-items: center;
-    padding: 18px;
     box-sizing: border-box;
-    background:
-      radial-gradient(900px 520px at 12% -8%, rgba(190, 196, 206, 0.28), transparent 60%),
-      radial-gradient(720px 480px at 100% 100%, rgba(175, 182, 192, 0.16), transparent 55%),
-      #eceef2;
     font-family: 'Plus Jakarta Sans', ui-sans-serif, sans-serif;
     color: #1a1a1a;
   }
@@ -271,14 +354,10 @@
   .login-frame {
     display: grid;
     grid-template-columns: 1.05fr 1fr;
-    width: min(1040px, 100%);
-    min-height: min(640px, calc(100vh - 36px));
-    border-radius: 28px;
+    width: 100%;
+    min-height: 100vh;
     overflow: hidden;
     background: #fff;
-    box-shadow:
-      0 24px 64px rgba(0, 0, 0, 0.1),
-      0 4px 16px rgba(0, 0, 0, 0.05);
   }
 
   .login-frame.shake {
@@ -318,9 +397,44 @@
     overflow: hidden;
     color: #fff;
     background:
-      radial-gradient(ellipse 80% 60% at 20% 15%, rgba(120, 140, 170, 0.35), transparent 55%),
-      radial-gradient(ellipse 70% 50% at 90% 90%, rgba(40, 50, 70, 0.55), transparent 50%),
-      linear-gradient(155deg, #3a4558 0%, #1e2633 42%, #121820 100%);
+      radial-gradient(ellipse 70% 60% at 12% 90%, rgba(88, 40, 160, 0.28), transparent 55%),
+      linear-gradient(160deg, #12142a 0%, #0b0d1e 55%, #05060f 100%);
+  }
+
+  .brand-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+    background-size: 44px 44px;
+    -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, #000 40%, transparent 85%);
+    mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, #000 40%, transparent 85%);
+    pointer-events: none;
+  }
+
+  .brand-watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 58%;
+    aspect-ratio: 1.03;
+    transform: translate(-50%, -50%);
+    overflow: hidden;
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 0;
+    -webkit-mask-image: radial-gradient(ellipse 75% 75% at 40% 45%, #000 55%, transparent 90%);
+    mask-image: radial-gradient(ellipse 75% 75% at 40% 45%, #000 55%, transparent 90%);
+  }
+
+  .brand-watermark img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: auto;
+    max-width: none;
   }
 
   .brand-glow {
@@ -330,7 +444,7 @@
     top: -60px;
     right: -40px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(160, 180, 210, 0.22), transparent 68%);
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.18), transparent 68%);
     pointer-events: none;
     animation: drift 16s ease-in-out infinite alternate;
   }
@@ -342,9 +456,31 @@
     bottom: 10%;
     left: -50px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(90, 110, 140, 0.3), transparent 70%);
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.2), transparent 70%);
     pointer-events: none;
     animation: drift 20s ease-in-out infinite alternate-reverse;
+  }
+
+  .brand-glow-3 {
+    position: absolute;
+    width: 240px;
+    height: 340px;
+    right: -90px;
+    top: 26%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(217, 70, 239, 0.4), transparent 72%);
+    filter: blur(6px);
+    pointer-events: none;
+  }
+
+  .brand-edge-line {
+    position: absolute;
+    right: 0;
+    top: 14%;
+    bottom: 30%;
+    width: 1px;
+    background: linear-gradient(180deg, transparent, rgba(217, 70, 239, 0.55), rgba(129, 140, 248, 0.35), transparent);
+    pointer-events: none;
   }
 
   @keyframes drift {
@@ -356,39 +492,98 @@
     }
   }
 
+  .brand-ring {
+    position: absolute;
+    width: 460px;
+    height: 460px;
+    right: -160px;
+    bottom: -170px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    pointer-events: none;
+  }
+
+  .brand-diamond {
+    position: absolute;
+    width: 320px;
+    height: 320px;
+    right: -80px;
+    bottom: -120px;
+    border-radius: 64px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transform: rotate(20deg);
+    pointer-events: none;
+  }
+
   .brand-top,
   .brand-copy,
-  .brand-steps {
+  .brand-foot {
     position: relative;
     z-index: 1;
   }
 
-  .brand-logo {
-    display: block;
-    height: 42px;
-    width: auto;
-    object-fit: contain;
-    image-rendering: -webkit-optimize-contrast;
-  }
-
-  .brand-copy {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    max-width: 360px;
-  }
-
-  .brand-badge {
-    align-self: flex-start;
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
     padding: 6px 12px;
     border-radius: 999px;
     font-size: 0.72rem;
     font-weight: 650;
     letter-spacing: 0.01em;
     color: rgba(255, 255, 255, 0.95);
-    background: rgba(255, 255, 255, 0.14);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     backdrop-filter: blur(8px);
+  }
+
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #34d399;
+    box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.25);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.4;
+    }
+  }
+
+  .dot-sep {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .progress-bars {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .bar {
+    height: 3px;
+    width: 26px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  .bar-active {
+    width: 40px;
+    background: linear-gradient(90deg, #818cf8, #6366f1);
+  }
+
+  .brand-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-width: 380px;
   }
 
   .brand-title {
@@ -404,73 +599,71 @@
     font-size: 0.9rem;
     font-weight: 500;
     line-height: 1.55;
-    color: rgba(255, 255, 255, 0.68);
+    color: rgba(255, 255, 255, 0.62);
     max-width: 320px;
   }
 
-  .brand-steps {
+  .brand-tags {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: 8px;
   }
 
-  .step-card {
+  .feature-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 650;
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .feature-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .brand-foot {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    animation: step-in 0.45s ease both;
+    gap: 8px;
   }
 
-  .step-card.active {
-    background: #fff;
-    border-color: transparent;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-  }
-
-  @keyframes step-in {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .step-num {
-    width: 28px;
-    height: 28px;
-    border-radius: 999px;
+  .foot-icon {
     display: grid;
     place-items: center;
-    flex-shrink: 0;
-    font-size: 0.78rem;
-    font-weight: 750;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     color: rgba(255, 255, 255, 0.75);
-    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    flex-shrink: 0;
   }
 
-  .step-card.active .step-num {
-    background: #1a1a1a;
-    border-color: transparent;
-    color: #fff;
+  .foot-icon svg {
+    width: 13px;
+    height: 13px;
   }
 
-  .step-label {
-    font-size: 0.82rem;
-    font-weight: 600;
-    line-height: 1.3;
-    color: rgba(255, 255, 255, 0.72);
+  .foot-text {
+    font-size: 0.68rem;
+    font-weight: 650;
+    letter-spacing: 0.03em;
+    color: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
   }
 
-  .step-card.active .step-label {
-    color: #1a1a1a;
-    font-weight: 700;
+  .foot-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.18), transparent);
   }
 
   /* ── Form panel ── */
@@ -479,7 +672,7 @@
     align-items: center;
     justify-content: center;
     padding: 36px 40px;
-    background: #fff;
+    background: #f4f5f7;
   }
 
   .form-inner {
@@ -487,7 +680,7 @@
     max-width: 380px;
     display: flex;
     flex-direction: column;
-    gap: 22px;
+    gap: 16px;
   }
 
   .form-head {
@@ -519,6 +712,26 @@
     font-weight: 500;
     color: #8e8e93;
     line-height: 1.4;
+  }
+
+  .dash-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    width: fit-content;
+    margin: 2px auto 0;
+    font-size: 0.68rem;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #4a4a4e;
+  }
+
+  .dash-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #1a1a1a;
   }
 
   .form {
@@ -558,6 +771,7 @@
     pointer-events: none;
     display: grid;
     place-items: center;
+    z-index: 1;
   }
 
   .input-icon svg {
@@ -569,21 +783,47 @@
     color: #5a5a5e;
   }
 
-  .input-shell input {
+  .input-shell input,
+  .input-shell select {
     width: 100%;
     height: 48px;
     padding: 0 42px 0 40px;
-    border: 1px solid transparent;
+    border: 1px solid #ececef;
     border-radius: 12px;
-    background: #f3f4f6;
+    background: #fff;
     color: #1a1a1a;
     font-size: 0.9rem;
     font-weight: 500;
     outline: none;
+    font-family: inherit;
     transition:
       background 0.2s ease,
       border-color 0.2s ease,
       box-shadow 0.2s ease;
+  }
+
+  .input-shell select {
+    appearance: none;
+    cursor: pointer;
+  }
+
+  .input-shell select:invalid {
+    color: #b0b0b5;
+  }
+
+  .input-shell select:focus {
+    background: #fff;
+    border-color: rgba(26, 26, 26, 0.18);
+    box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.06);
+  }
+
+  .input-shell:has(select:focus) .input-icon,
+  .input-shell:has(select:focus) .chevron {
+    color: #5a5a5e;
+  }
+
+  .field:has(select:focus) label {
+    color: #1a1a1a;
   }
 
   .input-shell input::placeholder {
@@ -597,9 +837,26 @@
     box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.06);
   }
 
-  .input-shell input:disabled {
+  .input-shell input:disabled,
+  .input-shell select:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+  }
+
+  .chevron {
+    position: absolute;
+    right: 14px;
+    width: 14px;
+    height: 14px;
+    color: #aeaeb2;
+    pointer-events: none;
+    display: grid;
+    place-items: center;
+  }
+
+  .chevron svg {
+    width: 14px;
+    height: 14px;
   }
 
   .eye {
@@ -718,6 +975,11 @@
       opacity 0.2s ease;
   }
 
+  .btn-primary svg {
+    width: 17px;
+    height: 17px;
+  }
+
   .btn-primary:not(:disabled):hover {
     background: #2c2c2c;
     transform: translateY(-1px);
@@ -757,7 +1019,6 @@
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.06em;
-    text-transform: uppercase;
   }
 
   .divider::before,
@@ -765,79 +1026,23 @@
     content: '';
     flex: 1;
     height: 1px;
-    background: #e8e8eb;
-  }
-
-  .demo-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .demo-chip {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: 11px;
-    border: 1px solid #ececef;
-    background: #f8f8fa;
-    cursor: pointer;
-    font: inherit;
-    text-align: left;
-    transition:
-      background 0.15s ease,
-      border-color 0.15s ease,
-      transform 0.12s ease;
-  }
-
-  .demo-chip:hover:not(:disabled) {
-    background: #fff;
-    border-color: #d8d8dc;
-    transform: translateY(-1px);
-  }
-
-  .demo-chip:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .demo-user {
-    font-family: 'SF Mono', 'Fira Mono', ui-monospace, monospace;
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: #1a1a1a;
-  }
-
-  .demo-role {
-    font-size: 0.68rem;
-    font-weight: 650;
-    color: #8e8e93;
-    padding: 3px 8px;
-    border-radius: 999px;
-    background: rgba(0, 0, 0, 0.05);
+    background: #e2e2e6;
   }
 
   .form-foot {
     margin: 0;
     text-align: center;
-    font-size: 0.68rem;
+    font-size: 0.7rem;
     font-weight: 500;
-    color: #c7c7cc;
+    line-height: 1.5;
+    color: #a8a8ad;
   }
 
   /* ── Responsive ── */
   @media (max-width: 860px) {
-    .login-page {
-      padding: 12px;
-      align-items: stretch;
-    }
-
     .login-frame {
       grid-template-columns: 1fr;
-      min-height: auto;
-      border-radius: 22px;
+      min-height: 100vh;
     }
 
     .brand-panel {
@@ -850,7 +1055,7 @@
       font-size: 1.7rem;
     }
 
-    .brand-steps {
+    .brand-tags {
       display: none;
     }
 
@@ -859,3 +1064,4 @@
     }
   }
 </style>
+
