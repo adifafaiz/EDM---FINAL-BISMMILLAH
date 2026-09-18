@@ -1,0 +1,6 @@
+RewriteEngine On
+RewriteBase /edm-task-monitoring/
+
+# Redirect root app URL to backend (CI3 + SPA)
+RewriteRule ^$ backend/ [R=302,L]
+RewriteRule ^api/(.*)$ backend/api/$1 [L,QSA]
