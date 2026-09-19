@@ -1079,23 +1079,23 @@
   }
 
   .pill-active {
-    background: #dcfce7;
-    color: #16a34a;
+    background-color: #dcfce7 !important;
+    color: #16a34a !important;
   }
 
   .pill-maintenance {
-    background: #fef3c7;
-    color: #d97706;
+    background-color: #fef3c7 !important;
+    color: #d97706 !important;
   }
 
   .pill-draft {
-    background: #f1f5f9;
-    color: #64748b;
+    background-color: #f1f5f9 !important;
+    color: #64748b !important;
   }
 
   .pill-retired {
-    background: #fee2e2;
-    color: #dc2626;
+    background-color: #fee2e2 !important;
+    color: #dc2626 !important;
   }
 
   .status-dropdown {
@@ -1115,6 +1115,11 @@
   }
   .status-dropdown:focus {
     outline: 2px solid #94a3b8;
+  }
+  
+  .status-dropdown option {
+    background-color: #ffffff;
+    color: #0f172a;
   }
 
   /* Date Cell */
