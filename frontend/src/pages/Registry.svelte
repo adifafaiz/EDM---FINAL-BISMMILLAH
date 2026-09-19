@@ -19,6 +19,9 @@
   let criticality = $state('')
   let q = $state('')
   let sort = $state('updated_desc')
+  
+  let expandedRows = $state(new Set())
+  let selectedSopItem = $state(null)
 
   let applied = $state({
     status: '',
@@ -178,12 +181,6 @@
       </div>
       <p class="subtitle">Katalog lengkap status dashboard, dokumen SOP aplikasi, PIC, dan pembaruan terakhir.</p>
     </div>
-    <div class="header-right">
-      <button class="sop-master-btn" type="button" onclick={() => alert('Membuka SOP Master Aplikasi')}>
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
-        Lihat SOP Master Aplikasi
-      </button>
-    </div>
   </div>
 
   <!-- Summary Cards Grid -->
@@ -298,6 +295,7 @@
           <thead>
             <tr>
               <th>DAFTAR DASHBOARD</th>
+              <th>SOP</th>
               <th>PIC</th>
               <th>STATUS DASHBOARD</th>
               <th>LAST UPDATES</th>
@@ -318,6 +316,13 @@
                       <span class="dash-meta">{item.platform} • {item.category}</span>
                     </div>
                   </div>
+                </td>
+
+                <!-- Column SOP -->
+                <td>
+                  <button class="sop-btn" onclick={() => (selectedSopItem = item)}>
+                    Lihat SOP
+                  </button>
                 </td>
 
                 <!-- Column 2: PIC -->
@@ -365,6 +370,35 @@
     {/if}
   </div>
 </section>
+
+{#if selectedSopItem}
+  <div class="sop-modal-backdrop" onclick={() => (selectedSopItem = null)}>
+    <div class="sop-modal-content" onclick={(e) => e.stopPropagation()}>
+      <div class="sop-modal-header">
+        <h3>SOP - {selectedSopItem.name}</h3>
+        <button class="close-btn" onclick={() => (selectedSopItem = null)}>×</button>
+      </div>
+      <div class="sop-modal-body">
+        <p><strong>Platform:</strong> {selectedSopItem.platform}</p>
+        <p><strong>Kategori:</strong> {selectedSopItem.category}</p>
+        <p><strong>Owner (PIC):</strong> {selectedSopItem.owner}</p>
+        <hr class="sop-divider" />
+        <h4>Prosedur Operasional Standar (SOP)</h4>
+        <p>Deskripsi sistem: <em>{selectedSopItem.description}</em></p>
+        <ol class="sop-list">
+           <li>Akses dashboard melalui platform <strong>{selectedSopItem.platform}</strong> menggunakan kredensial yang berwenang.</li>
+           <li>Lakukan verifikasi data harian/berkala sesuai jadwal sistem.</li>
+           <li>Jika terdapat masalah atau anomali data, segera eskalasikan kepada <strong>{selectedSopItem.owner}</strong>.</li>
+           <li>Pastikan untuk mereview dashboard ini kembali jika ada perubahan dari status <strong>{selectedSopItem.status}</strong>.</li>
+           <li>Dokumentasikan setiap perubahan konfigurasi pada log aktivitas.</li>
+        </ol>
+      </div>
+      <div class="sop-modal-footer">
+        <button class="sop-btn" onclick={() => (selectedSopItem = null)}>Tutup SOP</button>
+      </div>
+    </div>
+  </div>
+{/if}
 
 <style>
   .page {
@@ -416,6 +450,27 @@
     border-radius: 8px;
     padding: 0 0.75rem;
     background: var(--surface, #fff);
+    color: #0f172a; /* Fix dropdown text visibility */
+  }
+
+  select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 0.65em auto;
+    padding-right: 2rem !important;
+    cursor: pointer;
+    min-width: 140px;
+    color: #0f172a !important;
+    background-color: #ffffff !important;
+  }
+  
+  select option {
+    color: #0f172a;
+    background: #ffffff;
   }
 
   button {
@@ -847,6 +902,7 @@
     border: 1px solid #e2e8f0;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    flex-shrink: 0;
   }
 
   .redesign-table-wrap {
@@ -1030,5 +1086,140 @@
     color: #64748b;
     font-size: 0.85rem;
   }
+
+  .redesign-table-wrap {
+    width: 100%;
+  }
+
+  /* Sticky header for scrollable table */
+  .redesign-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #f8fafc;
+    border-bottom: 2px solid #e2e8f0;
+    box-shadow: 0 2px 4px -2px rgba(0,0,0,0.05); /* add slight shadow for sticky */
+  }
+
+  .sop-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: #f1f5f9;
+    color: #1e3a8a;
+    border: 1px solid #cbd5e1;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .sop-btn:hover {
+    background: #e2e8f0;
+    border-color: #94a3b8;
+  }
+
+  /* SOP Modal Styles */
+  .sop-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sop-modal-content {
+    background: #ffffff;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    animation: modalPop 0.2s ease-out forwards;
+  }
+
+  @keyframes modalPop {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .sop-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .sop-modal-header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: #0f172a;
+  }
+
+  .close-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: #64748b;
+    padding: 0;
+    cursor: pointer;
+    height: auto;
+  }
+
+  .close-btn:hover {
+    color: #0f172a;
+  }
+
+  .sop-modal-body {
+    padding: 1.5rem;
+    color: #334155;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .sop-modal-body p {
+    margin: 0.25rem 0;
+  }
+
+  .sop-divider {
+    margin: 1.25rem 0;
+    border: none;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .sop-modal-body h4 {
+    margin: 0 0 0.5rem 0;
+    color: #0f172a;
+    font-size: 1rem;
+  }
+
+  .sop-list {
+    padding-left: 1.25rem;
+    margin: 0.75rem 0 0 0;
+  }
+
+  .sop-list li {
+    margin-bottom: 0.5rem;
+  }
+
+  .sop-modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+  }
+
 </style>
 
