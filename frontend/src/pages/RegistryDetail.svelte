@@ -21,7 +21,7 @@
   let { params = {} } = $props()
 
   /** @type {'overview' | 'tasks' | 'history' | 'actions'} */
-  let tab = $state('tasks')
+  let tab = $state('overview')
 
   let taskTitle = $state('')
   let taskPic = $state('')
@@ -83,7 +83,7 @@
     editMsg = ''
     statusMsg = ''
     deleteMsg = ''
-    tab = 'tasks'
+    tab = 'overview'
   })
 
   function onAddTask(event) {
@@ -183,16 +183,35 @@
     </header>
 
     <div class="tabs" role="tablist" aria-label="Detail tabs">
-      <button type="button" role="tab" class:on={tab === 'tasks'} aria-selected={tab === 'tasks'} onclick={() => (tab = 'tasks')}>Requirement Task</button>
-      <button type="button" role="tab" class:on={tab === 'history'} aria-selected={tab === 'history'} onclick={() => (tab = 'history')}>History</button>
       <button type="button" role="tab" class:on={tab === 'overview'} aria-selected={tab === 'overview'} onclick={() => (tab = 'overview')}>Overview</button>
-      <button type="button" role="tab" class:on={tab === 'actions'} aria-selected={tab === 'actions'} onclick={() => (tab = 'actions')}>Actions</button>
     </div>
 
     {#key tab}
       <div class="panel">
         {#if tab === 'overview'}
           <div class="overview">
+            <section>
+              <h2>Quick Stats</h2>
+              <div class="stats">
+                <article>
+                  <span>Tasks Total</span>
+                  <strong>{item.quick_stats.tasks_total}</strong>
+                </article>
+                <article>
+                  <span>Tasks Open</span>
+                  <strong>{item.quick_stats.tasks_open}</strong>
+                </article>
+                <article>
+                  <span>Tasks Done</span>
+                  <strong>{item.quick_stats.tasks_done}</strong>
+                </article>
+                <article>
+                  <span>Last Change</span>
+                  <strong class="date">{formatDate(item.quick_stats.last_change)}</strong>
+                </article>
+              </div>
+            </section>
+
             <section>
               <h2>Info Dasar</h2>
               <dl class="grid3">
@@ -217,28 +236,6 @@
                   </div>
                 {/each}
               </dl>
-            </section>
-
-            <section>
-              <h2>Quick Stats</h2>
-              <div class="stats">
-                <article>
-                  <span>Tasks Total</span>
-                  <strong>{item.quick_stats.tasks_total}</strong>
-                </article>
-                <article>
-                  <span>Tasks Open</span>
-                  <strong>{item.quick_stats.tasks_open}</strong>
-                </article>
-                <article>
-                  <span>Tasks Done</span>
-                  <strong>{item.quick_stats.tasks_done}</strong>
-                </article>
-                <article>
-                  <span>Last Change</span>
-                  <strong class="date">{formatDate(item.quick_stats.last_change)}</strong>
-                </article>
-              </div>
             </section>
           </div>
         {:else if tab === 'tasks'}
