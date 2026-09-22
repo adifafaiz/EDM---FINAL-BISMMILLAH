@@ -433,7 +433,8 @@
     display: flex;
     flex-direction: column;
     gap: 22px;
-    max-width: 620px;
+    max-width: 560px;
+    margin-left: clamp(20px, 9vw, 100px);
   }
 
   .brand-title {
@@ -816,6 +817,11 @@
       min-height: 280px;
       padding: 24px 22px 20px;
       gap: 20px;
+    }
+
+    .brand-copy {
+      margin-left: 0;
+      max-width: none;
     }
 
     .brand-title {
