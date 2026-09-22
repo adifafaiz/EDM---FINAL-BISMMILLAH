@@ -1783,6 +1783,22 @@
     border-radius: 999px;
   }
 
+  .switch .liquidGlass-effect {
+    background: rgba(60, 68, 96, 0.12);
+    backdrop-filter: blur(16px) saturate(200%);
+    -webkit-backdrop-filter: blur(16px) saturate(200%);
+  }
+
+  .switch .liquidGlass-tint {
+    background: rgba(60, 68, 96, 0.14);
+  }
+
+  .switch {
+    box-shadow:
+      inset 0 1px 3px rgba(20, 30, 60, 0.1),
+      0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
   .switch :global(.switch-thumb) {
     position: absolute;
     top: 3px;
@@ -1790,10 +1806,18 @@
     height: calc(100% - 6px);
     width: 0;
     border-radius: 999px;
-    background: rgba(26, 26, 26, 0.9);
+    background:
+      radial-gradient(140% 140% at 18% -10%, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0) 55%),
+      linear-gradient(200deg, rgba(255, 255, 255, 0.4), rgba(214, 224, 255, 0.26) 55%, rgba(186, 201, 255, 0.2));
+    backdrop-filter: blur(18px) saturate(260%) brightness(1.05) contrast(1.08);
+    -webkit-backdrop-filter: blur(18px) saturate(260%) brightness(1.05) contrast(1.08);
     box-shadow:
-      inset 2px 2px 1px 0 rgba(255, 255, 255, 0.28),
-      inset -1px -1px 1px 1px rgba(255, 255, 255, 0.12);
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.95),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.55),
+      inset -2px -3px 5px rgba(20, 30, 80, 0.16),
+      0 0 0 1px rgba(20, 30, 60, 0.16),
+      0 6px 14px rgba(10, 20, 55, 0.2),
+      0 2px 4px rgba(10, 20, 55, 0.14);
     z-index: 2;
     pointer-events: none;
     will-change: transform, width;
@@ -1825,7 +1849,8 @@
 
   .switch button.on {
     background: transparent;
-    color: #fff;
+    color: #15171c;
+    font-weight: 700;
     box-shadow: none;
   }
 
@@ -1955,27 +1980,43 @@
 
   .deadline-go {
     height: 32px;
-    padding: 0 0.85rem;
+    padding: 0 0.9rem;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    background: linear-gradient(135deg, #053a83 0%, #065fc6 48%, #339ef5 100%);
+    border: none;
+    background:
+      radial-gradient(130% 160% at 26% -30%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 55%),
+      linear-gradient(200deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 42%),
+      linear-gradient(160deg, rgba(31, 122, 224, 0.92) 0%, rgba(12, 91, 194, 0.94) 52%, rgba(6, 63, 143, 0.96) 100%);
+    -webkit-backdrop-filter: blur(14px) saturate(180%) brightness(1.05);
+    backdrop-filter: blur(14px) saturate(180%) brightness(1.05);
     box-shadow:
-      0 4px 12px rgba(6, 95, 198, 0.28),
-      inset 0 1px 0 rgba(255, 255, 255, 0.28);
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -8px 12px rgba(4, 30, 80, 0.28),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+      0 6px 14px rgba(6, 60, 150, 0.32),
+      0 2px 5px rgba(6, 60, 150, 0.22);
     font: inherit;
     font-size: 0.72rem;
     font-weight: 650;
     color: #fff;
+    text-shadow: 0 1px 1px rgba(0, 30, 80, 0.35);
     cursor: pointer;
     white-space: nowrap;
-    transition: filter 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    transition: filter 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
   }
 
   .deadline-go:hover {
-    filter: brightness(1.06);
+    filter: brightness(1.08) saturate(1.05);
     box-shadow:
-      0 6px 16px rgba(6, 95, 198, 0.36),
-      inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.65),
+      inset 0 -8px 12px rgba(4, 30, 80, 0.3),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.25),
+      0 8px 18px rgba(6, 60, 150, 0.4),
+      0 3px 7px rgba(6, 60, 150, 0.28);
+  }
+
+  .deadline-go:active {
+    transform: scale(0.96);
   }
 
   .chart-legend .swatch {

@@ -146,10 +146,10 @@
     --pad: 4px;
     --itemW: 90px;
     --barH: 40px;
-    --lensH: 52px;
-    --lensW: 108px;
-    --lensR: 22px;
-    --k: 1.14;
+    --lensH: 40px;
+    --lensW: 94px;
+    --lensR: 20px;
+    --k: 1.04;
     --spring: cubic-bezier(0.34, 1.3, 0.5, 1);
 
     position: relative;
@@ -234,13 +234,13 @@
     pointer-events: none;
     transform: translateX(var(--lx, 0px)) scale(var(--ls, 1));
     will-change: transform;
-    -webkit-backdrop-filter: blur(8px) saturate(170%);
-    backdrop-filter: blur(8px) saturate(170%);
+    -webkit-backdrop-filter: blur(16px) saturate(240%) brightness(1.1) contrast(1.02);
+    backdrop-filter: blur(16px) saturate(240%) brightness(1.1) contrast(1.02);
     box-shadow:
-      0 0 0 1px rgba(20, 30, 60, 0.36),
-      0 0 8px rgba(20, 30, 60, 0.22),
-      0 8px 18px rgba(20, 30, 60, 0.24),
-      0 2px 4px rgba(20, 30, 60, 0.2);
+      0 1px 1px rgba(255, 255, 255, 0.9),
+      0 0 0 1px rgba(20, 30, 60, 0.16),
+      0 6px 14px rgba(10, 20, 55, 0.2),
+      0 2px 5px rgba(10, 20, 55, 0.16);
   }
 
   .lens::before {
@@ -248,7 +248,18 @@
     position: absolute;
     inset: 0;
     z-index: 0;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(255, 255, 255, 0.9));
+    background:
+      radial-gradient(140% 140% at 18% -10%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 55%),
+      linear-gradient(200deg, rgba(255, 255, 255, 0.72), rgba(233, 238, 255, 0.5) 55%, rgba(210, 220, 255, 0.42));
+  }
+
+  .lens::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0.5;
+    background: radial-gradient(60% 90% at 108% 50%, rgba(160, 180, 255, 0.4), transparent 60%);
   }
 
   .lb.ready .lens,
@@ -257,7 +268,7 @@
   }
 
   .lb.pressed .lens {
-    --ls: 1.09;
+    --ls: 1.04;
   }
 
   /* salinan isi bar yang diperbesar, dipotong mengikuti bentuk lensa */
@@ -316,10 +327,10 @@
     z-index: 3;
     pointer-events: none;
     box-shadow:
-      inset 0 0 0 1.5px #fff,
-      inset 0 3px 3px #fff,
-      inset 0 -3px 5px rgba(20, 30, 60, 0.1),
-      inset 0 0 0 2.5px rgba(20, 30, 60, 0.05);
+      inset 0 1.5px 0 rgba(255, 255, 255, 0.95),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+      inset -1px -2px 4px rgba(20, 30, 80, 0.12),
+      inset 0 -6px 8px rgba(20, 30, 80, 0.06);
   }
 
   @media (prefers-reduced-motion: reduce) {

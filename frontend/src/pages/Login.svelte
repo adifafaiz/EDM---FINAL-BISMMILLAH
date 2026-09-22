@@ -37,18 +37,13 @@
       <div class="brand-ring" aria-hidden="true"></div>
       <div class="brand-diamond" aria-hidden="true"></div>
 
-      <div class="brand-top">
+      <div class="brand-top"></div>
+
+      <div class="brand-copy">
         <span class="live-badge">
           <span class="live-dot" aria-hidden="true"></span>
           Operation Monitoring <span class="dot-sep">•</span> Live
         </span>
-        <div class="progress-bars" aria-hidden="true">
-          <span class="bar bar-active"></span>
-          <span class="bar"></span>
-        </div>
-      </div>
-
-      <div class="brand-copy">
         <h1 class="brand-title">Kelola Tugas,<br />Tingkatkan Produktivitas</h1>
         <p class="brand-sub">
           Pantau, kelola, dan capai target tim Anda dalam satu platform yang terintegrasi secara
@@ -207,7 +202,7 @@
           </div>
 
           <button type="submit" class="btn-primary">
-            Masuk ke Dashboard
+            Masuk
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path
                 d="M5 12h14M13 6l6 6-6 6"
@@ -411,30 +406,16 @@
     color: rgba(255, 255, 255, 0.4);
   }
 
-  .progress-bars {
-    display: flex;
-    gap: 6px;
-    margin-top: 10px;
-  }
-
-  .bar {
-    height: 3px;
-    width: 26px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.14);
-  }
-
-  .bar-active {
-    width: 40px;
-    background: linear-gradient(90deg, #818cf8, #6366f1);
-  }
-
   .brand-copy {
     display: flex;
     flex-direction: column;
     gap: 22px;
     max-width: 560px;
     margin-left: clamp(20px, 9vw, 100px);
+  }
+
+  .brand-copy .live-badge {
+    margin-bottom: -8px;
   }
 
   .brand-title {
