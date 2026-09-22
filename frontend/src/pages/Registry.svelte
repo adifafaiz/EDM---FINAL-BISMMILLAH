@@ -443,11 +443,36 @@
     <div class="panel">
       <header>
         <button class="back-btn" onclick={() => selectedDetail = null}>← Kembali</button>
+        <!-- 
         <div class="meta" style="margin-top: 1rem;">
           <h2 style="margin: 0 0 0.4rem; font-size: 1.7rem;">{selectedDetail.name}</h2>
           <span class="mono" style="margin-left: 0.5rem;">#{selectedDetail.id}</span>
           <span class={`badge status-${selectedDetail.status}`} style="margin-left: 0.5rem;">{registryStatusLabel(selectedDetail.status)}</span>
           <span class={`badge crit-${selectedDetail.criticality}`} style="margin-left: 0.5rem;">{criticalityLabel(selectedDetail.criticality)}</span>
+        </div>
+        -->
+        <div class="detail-header-new">
+          <div class="title-section">
+            <h2 class="detail-title">{selectedDetail.name}</h2>
+            <span class="mono id-badge">#{selectedDetail.id}</span>
+          </div>
+          <div class="status-section">
+            <div class="status-group">
+              <span class="status-label">Status Dashboard</span>
+              <span class={`badge status-${selectedDetail.status}`}>{registryStatusLabel(selectedDetail.status)}</span>
+            </div>
+            <div class="status-divider"></div>
+            <!--
+            <div class="status-group">
+              <span class="status-label">Tingkat Kritikalitas</span>
+              <span class={`badge crit-${selectedDetail.criticality}`}>{criticalityLabel(selectedDetail.criticality)}</span>
+            </div>
+            -->
+            <div class="status-group">
+              <span class="status-label">Tingkat Prioritas</span>
+              <span class={`badge crit-${selectedDetail.criticality}`}>{criticalityLabel(selectedDetail.criticality)}</span>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -1489,5 +1514,69 @@
     justify-content: flex-end;
   }
 
+  /* CSS Baru untuk Detail Header Status */
+  .detail-header-new {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 1.5rem;
+  }
+
+  .title-section {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  .detail-title {
+    margin: 0 !important;
+    font-size: 1.7rem !important;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+  }
+
+  .id-badge {
+    background: #f1f5f9;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+  }
+
+  .status-section {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    background: #f8fafc;
+    padding: 0.8rem 1.2rem;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    width: fit-content;
+  }
+
+  .status-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .status-label {
+    font-size: 0.85rem;
+    color: #475569;
+    font-weight: 500;
+  }
+
+  .status-divider {
+    width: 1px;
+    height: 24px;
+    background: #cbd5e1;
+  }
 </style>
 
