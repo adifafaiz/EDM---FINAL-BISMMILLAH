@@ -212,7 +212,7 @@
             {#if railExpanded}
               <div class="subnav" class:visible={onRegistry} aria-label="Sub menu Dashboard Registry">
                 <a href="/registry/list" use:link class="sub-item" class:on={isRegistrySub('list')}>Daftar Dashboard</a>
-                <a href="/registry/detail" use:link class="sub-item" class:on={isRegistrySub('detail')}>Dashboard Detail</a>
+                <!-- <a href="/registry/detail" use:link class="sub-item" class:on={isRegistrySub('detail')}>Dashboard Detail</a> -->
               </div>
             {/if}
           </div>

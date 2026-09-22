@@ -590,6 +590,23 @@ export function addRegistryTask(dashboardId, payload) {
   return task
 }
 
+/* OLD CODE
+export function registryStatusLabel(status) {
+  switch (status) {
+    case 'active':
+      return 'Active'
+    case 'draft':
+      return 'Draft'
+    case 'maintenance':
+      return 'Maintenance'
+    case 'retired':
+      return 'Retired'
+    default:
+      return status
+  }
+}
+*/
+
 /** @param {RegistryStatus | string} status */
 export function registryStatusLabel(status) {
   switch (status) {
@@ -601,6 +618,8 @@ export function registryStatusLabel(status) {
       return 'Maintenance'
     case 'retired':
       return 'Retired'
+    case 'idle':
+      return 'Idle'
     default:
       return status
   }
@@ -634,11 +653,21 @@ export function itemStatusLabel(status) {
   }
 }
 
+/* OLD CODE
 export const registryStatusOptions = [
   { value: 'active', label: 'Active' },
   { value: 'draft', label: 'Draft' },
   { value: 'maintenance', label: 'Maintenance' },
   { value: 'retired', label: 'Retired' },
+]
+*/
+
+export const registryStatusOptions = [
+  { value: 'active', label: 'Active' },
+  { value: 'draft', label: 'Draft' },
+  { value: 'maintenance', label: 'Maintenance' },
+  { value: 'retired', label: 'Retired' },
+  { value: 'idle', label: 'Idle' },
 ]
 
 export const criticalityOptions = [

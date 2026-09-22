@@ -23,6 +23,7 @@
   
   let expandedRows = $state(new Set())
   let selectedSopItem = $state(null)
+  let selectedDetail = $state(null)
 
   let applied = $state({
     status: '',
@@ -40,6 +41,8 @@
   const reviewCount = $derived(
     allDashboards.filter((d) => d.status === 'draft' || d.status === 'maintenance').length
   )
+  // const idleCount = $derived(allDashboards.filter((d) => d.status === 'retired').length)
+  const idleCount = $derived(allDashboards.filter((d) => d.status === 'idle').length)
 
   function getInitial(name = '') {
     if (!name) return '?'
@@ -212,6 +215,7 @@
 {/if}
 
 <section class="redesign-container">
+  {#if !selectedDetail}
   <!-- Header Bar -->
   <div class="redesign-header">
     <div class="header-left">
@@ -254,7 +258,8 @@
       </div>
     </div>
 
-    <!-- Card 3 -->
+    <!-- Card 3 Lama (Dokumen SOP) - di-hide -->
+    <!--
     <div class="stat-card white-card border-bottom-blue">
       <div class="stat-top">
         <span class="stat-title">Dokumen SOP</span>
@@ -265,6 +270,21 @@
       <div class="stat-bottom">
         <div class="stat-value">{allItemsCount}</div>
         <div class="stat-sub link-sub">Buka SOP Master Aplikasi →</div>
+      </div>
+    </div>
+    -->
+
+    <!-- Card 3 Baru (Status Idle) -->
+    <div class="stat-card white-card border-bottom-blue">
+      <div class="stat-top">
+        <span class="stat-title">Status Idle</span>
+        <div class="icon-wrapper purple-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+      </div>
+      <div class="stat-bottom">
+        <div class="stat-value">{idleCount}</div>
+        <div class="stat-sub">tidak aktif · retired</div>
       </div>
     </div>
 
@@ -351,7 +371,7 @@
                   <div class="dashboard-cell">
                     <div class="avatar-badge">{item.code || 'DB'}</div>
                     <div class="dashboard-info">
-                      <a href={`/registry/${item.id}`} use:link onclick={() => rememberDetailId(item.id)} class="dash-name">
+                      <a href="#" onclick={(e) => { e.preventDefault(); selectedDetail = item; rememberDetailId(item.id); }} class="dash-name">
                         {item.name}
                       </a>
                       <span class="dash-meta">{item.platform} • {item.category}</span>
@@ -419,6 +439,72 @@
       </div>
     {/if}
   </div>
+  {:else}
+    <div class="panel">
+      <header>
+        <button class="back-btn" onclick={() => selectedDetail = null}>← Kembali</button>
+        <div class="meta" style="margin-top: 1rem;">
+          <h2 style="margin: 0 0 0.4rem; font-size: 1.7rem;">{selectedDetail.name}</h2>
+          <span class="mono" style="margin-left: 0.5rem;">#{selectedDetail.id}</span>
+          <span class={`badge status-${selectedDetail.status}`} style="margin-left: 0.5rem;">{registryStatusLabel(selectedDetail.status)}</span>
+          <span class={`badge crit-${selectedDetail.criticality}`} style="margin-left: 0.5rem;">{criticalityLabel(selectedDetail.criticality)}</span>
+        </div>
+      </header>
+
+      <div class="overview">
+        <section>
+          <h2>Quick Stats</h2>
+          <div class="stats">
+            <article>
+              <span>Total Requirement</span>
+              <strong>{selectedDetail.quick_stats?.tasks_total || 0}</strong>
+            </article>
+            <article>
+              <span>Total Task</span>
+              <strong>{selectedDetail.tasks?.length || 0}</strong>
+            </article>
+            <article>
+              <span>Task Done</span>
+              <strong>{selectedDetail.quick_stats?.tasks_done || 0}</strong>
+            </article>
+            <article>
+              <span>Created</span>
+              <strong class="date">{formatDateDisplay(selectedDetail.created_at)}</strong>
+            </article>
+            <!-- <article>
+              <span>Last Updates</span>
+              <strong class="date">{formatDateDisplay(selectedDetail.updated_at)}</strong>
+            </article> -->
+            <article>
+              <span>Last Update</span>
+              <strong class="date">{formatDateDisplay(selectedDetail.updated_at)}</strong>
+            </article>
+          </div>
+        </section>
+
+        <section>
+          <h2>Info Dasar</h2>
+          <dl class="grid3">
+            <div><dt>Code</dt><dd>{selectedDetail.code}</dd></div>
+            <div><dt>Owner</dt><dd>{selectedDetail.owner}</dd></div>
+            <div><dt>Platform</dt><dd>{selectedDetail.platform}</dd></div>
+            <div><dt>Category</dt><dd>{selectedDetail.category}</dd></div>
+            <div><dt>Version</dt><dd>{selectedDetail.version}</dd></div>
+            <div><dt>URL</dt><dd>{selectedDetail.url || '—'}</dd></div>
+            
+            <div><dt>Framework</dt><dd>{selectedDetail.metadata?.framework || 'CodeIgniter'}</dd></div>
+            <div><dt>Backend</dt><dd>{selectedDetail.metadata?.backend || 'PHP'}</dd></div>
+            <div><dt>Frontend</dt><dd>{selectedDetail.metadata?.frontend || 'Svelte'}</dd></div>
+            <div><dt>Versi CI</dt><dd>{selectedDetail.metadata?.ci_version || '4.x'}</dd></div>
+            <div><dt>Versi PHP</dt><dd>{selectedDetail.metadata?.php_version || '8.2'}</dd></div>
+
+            <!-- <div><dt>Created</dt><dd>{formatDateDisplay(selectedDetail.created_at)}</dd></div>
+            <div><dt>Updated</dt><dd>{formatDateDisplay(selectedDetail.updated_at)}</dd></div> -->
+          </dl>
+        </section>
+      </div>
+    </div>
+  {/if}
 </section>
 
 {#if selectedSopItem}
@@ -456,6 +542,104 @@
 {/if}
 
 <style>
+  /* Detail View Styles (Legacy Format) */
+  .panel {
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: var(--radius, 12px);
+    box-shadow: var(--shadow, 0 1px 3px rgba(0, 0, 0, 0.06));
+    padding: 1.25rem;
+    margin-top: 1rem;
+  }
+
+  .panel h2 {
+    margin: 0 0 0.85rem;
+    font-size: 1rem;
+  }
+
+  .overview {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .grid3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 0;
+  }
+
+  dt {
+    color: var(--muted, #64748b);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.25rem;
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 600;
+    word-break: break-word;
+  }
+
+  .stats {
+    display: grid;
+    /* Diubah menjadi 5 kolom untuk memuat 5 card (Total Req, Total Task, Task Done, Created, Last Update) */
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .stats article {
+    background: #f8fafc;
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .stats span {
+    color: var(--muted, #64748b);
+    font-size: 0.82rem;
+  }
+
+  .stats strong {
+    font-size: 1.45rem;
+    line-height: 1;
+  }
+
+  .stats strong.date {
+    font-size: 1rem;
+  }
+
+  @media (max-width: 900px) {
+    .grid3,
+    .stats {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: #ffffff;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .back-btn:hover {
+    background: #f8fafc;
+    color: #0f172a;
+    border-color: #94a3b8;
+  }
+
   .page {
     min-height: 0;
     height: 100%;
@@ -614,6 +798,11 @@
   .status-retired {
     background: #fee2e2;
     color: #991b1b;
+  }
+
+  .status-idle {
+    background: #f1f5f9;
+    color: #475569;
   }
 
   .crit-high {
