@@ -1784,18 +1784,18 @@
   }
 
   .switch .liquidGlass-effect {
-    background: rgba(60, 68, 96, 0.12);
+    background: rgba(60, 68, 96, 0.03);
     backdrop-filter: blur(16px) saturate(200%);
     -webkit-backdrop-filter: blur(16px) saturate(200%);
   }
 
   .switch .liquidGlass-tint {
-    background: rgba(60, 68, 96, 0.14);
+    background: rgba(60, 68, 96, 0.035);
   }
 
   .switch {
     box-shadow:
-      inset 0 1px 3px rgba(20, 30, 60, 0.1),
+      inset 0 1px 3px rgba(20, 30, 60, 0.04),
       0 2px 10px rgba(0, 0, 0, 0.1);
   }
 

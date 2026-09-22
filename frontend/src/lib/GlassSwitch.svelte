@@ -177,12 +177,12 @@
     position: absolute;
     inset: 0;
     border-radius: 999px;
-    background: rgba(60, 68, 96, 0.2);
+    background: rgba(60, 68, 96, 0.03);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     backdrop-filter: blur(20px) saturate(180%);
     box-shadow:
-      inset 0 2px 5px rgba(20, 30, 60, 0.16),
-      inset 0 0 0 0.5px rgba(20, 30, 60, 0.14),
+      inset 0 2px 5px rgba(20, 30, 60, 0.03),
+      inset 0 0 0 0.5px rgba(20, 30, 60, 0.04),
       0 0 0 0.5px rgba(255, 255, 255, 0.6);
   }
 
