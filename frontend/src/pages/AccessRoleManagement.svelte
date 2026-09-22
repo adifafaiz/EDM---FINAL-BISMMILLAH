@@ -4,9 +4,8 @@
   import {
     accessStore,
     createRole,
+    updateRole,
     deleteRole,
-    createPermission,
-    deletePermission,
     setRolePermission,
     countUsersInRole,
   } from '../lib/accessStore.svelte.js'
@@ -32,47 +31,14 @@
     addOpen = false
   }
 
-  let permOpen = $state(false)
-  let permLabel = $state('')
-  let permGroup = $state('')
-  let permError = $state('')
-
-  function openAddPerm() {
-    permLabel = ''
-    permGroup = ''
-    permError = ''
-    permOpen = true
-  }
-
-  function closeAddPerm() {
-    permOpen = false
-  }
-
-  /** @param {SubmitEvent} event */
-  function onAddPermSubmit(event) {
-    event.preventDefault()
-    const result = createPermission({ label: permLabel, group: permGroup })
-    if (!result.ok) {
-      permError = result.reason
-      return
-    }
-    permOpen = false
-  }
-
-  /** @type {{ kind: 'role', id: number, name: string, users: number } | { kind: 'permission', key: string, label: string } | null} */
+  /** @type {{ id: number, name: string, users: number } | null} */
   let confirm = $state(null)
   let confirmError = $state('')
 
   /** @param {import('../lib/accessStore.svelte.js').AccessRole} role */
   function askDeleteRole(role) {
     confirmError = ''
-    confirm = { kind: 'role', id: role.id, name: role.name, users: countUsersInRole(role.id) }
-  }
-
-  /** @param {import('../lib/accessStore.svelte.js').AccessPermission} perm */
-  function askDeletePermission(perm) {
-    confirmError = ''
-    confirm = { kind: 'permission', key: perm.key, label: perm.label }
+    confirm = { id: role.id, name: role.name, users: countUsersInRole(role.id) }
   }
 
   function closeConfirm() {
@@ -81,16 +47,50 @@
 
   function onConfirmDelete() {
     if (!confirm) return
-    if (confirm.kind === 'role') {
-      const result = deleteRole(confirm.id)
-      if (!result.ok) {
-        confirmError = result.reason
-        return
-      }
-    } else {
-      deletePermission(confirm.key)
+    const result = deleteRole(confirm.id)
+    if (!result.ok) {
+      confirmError = result.reason
+      return
     }
     confirm = null
+  }
+
+  let editOpen = $state(false)
+  let editRoleId = $state(/** @type {number | null} */ (null))
+  let editName = $state('')
+  let editDescription = $state('')
+  let editPerms = $state(/** @type {Record<string, boolean>} */ ({}))
+  let editError = $state('')
+
+  /** @param {import('../lib/accessStore.svelte.js').AccessRole} role */
+  function openEdit(role) {
+    editRoleId = role.id
+    editName = role.name
+    editDescription = role.description
+    editPerms = { ...role.permissions }
+    editError = ''
+    editOpen = true
+  }
+
+  function closeEdit() {
+    editOpen = false
+  }
+
+  /** @param {string} key */
+  function toggleEditPerm(key) {
+    editPerms = { ...editPerms, [key]: !editPerms[key] }
+  }
+
+  /** @param {SubmitEvent} event */
+  function onEditSubmit(event) {
+    event.preventDefault()
+    if (editRoleId == null) return
+    const result = updateRole(editRoleId, { name: editName, description: editDescription, permissions: editPerms })
+    if (!result.ok) {
+      editError = result.reason
+      return
+    }
+    editOpen = false
   }
 
   /** @param {string} key */
@@ -119,7 +119,7 @@
   function onKeydown(e) {
     if (e.key !== 'Escape') return
     closeAdd()
-    closeAddPerm()
+    closeEdit()
     closeConfirm()
   }
 
@@ -150,8 +150,6 @@
     }
     return [...map.entries()]
   })
-
-  const groupNames = $derived(groups.map(([g]) => g))
 </script>
 
 <section class="page">
@@ -164,7 +162,6 @@
     >
       {#snippet actions()}
         <div class="head-actions">
-          <button type="button" class="btn-secondary" onclick={openAddPerm}>+ Tambah Permission</button>
           <button type="button" class="btn-primary" onclick={openAdd}>+ Tambah Role</button>
         </div>
       {/snippet}
@@ -184,7 +181,16 @@
                   <span class="count">{countUsersInRole(role.id)} user</span>
                   <button
                     type="button"
-                    class="icon-del"
+                    class="icon-btn"
+                    title={`Edit role ${role.name}`}
+                    aria-label={`Edit role ${role.name}`}
+                    onclick={() => openEdit(role)}
+                  >
+                    {@render editIcon()}
+                  </button>
+                  <button
+                    type="button"
+                    class="icon-btn icon-del"
                     title={`Hapus role ${role.name}`}
                     aria-label={`Hapus role ${role.name}`}
                     onclick={() => askDeleteRole(role)}
@@ -229,20 +235,7 @@
                 </tr>
                 {#each perms as perm}
                   <tr>
-                    <td class="sticky-col perm-label">
-                      <div class="perm-cell">
-                        <span>{perm.label}</span>
-                        <button
-                          type="button"
-                          class="icon-del"
-                          title={`Hapus permission ${perm.label}`}
-                          aria-label={`Hapus permission ${perm.label}`}
-                          onclick={() => askDeletePermission(perm)}
-                        >
-                          {@render trashIcon()}
-                        </button>
-                      </div>
-                    </td>
+                    <td class="sticky-col perm-label">{perm.label}</td>
                     {#each roles as role}
                       <td class="cell-check">
                         <label class="toggle" title={`${perm.label} · ${role.name}`}>
@@ -325,53 +318,59 @@
   </div>
 {/if}
 
-{#if permOpen}
-  <div class="backdrop" role="presentation" onclick={closeAddPerm} onkeydown={onKeydown}>
+{#if editOpen}
+  <div class="backdrop" role="presentation" onclick={closeEdit} onkeydown={onKeydown}>
     <div
-      class="modal small liquidGlass-wrapper"
+      class="modal liquidGlass-wrapper"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="add-perm-title"
+      aria-labelledby="edit-role-title"
       tabindex="-1"
       onclick={(e) => e.stopPropagation()}
       onkeydown={onKeydown}
     >
       {@render glass()}
 
-      <form class="modal-body" onsubmit={onAddPermSubmit}>
+      <form class="modal-body" onsubmit={onEditSubmit}>
         <div class="modal-head">
           <div>
-            <h2 id="add-perm-title">Tambah Permission</h2>
-            <p>Baris baru muncul di matriks, awalnya nonaktif untuk semua role</p>
+            <h2 id="edit-role-title">Edit Role</h2>
+            <p>Ubah nama, deskripsi, dan permission role ini</p>
           </div>
-          <button type="button" class="close" aria-label="Tutup" onclick={closeAddPerm}>×</button>
+          <button type="button" class="close" aria-label="Tutup" onclick={closeEdit}>×</button>
         </div>
 
         <label>
-          <span>Nama permission</span>
-          <input id="perm-label" bind:value={permLabel} placeholder="Contoh: Hapus Task" />
+          <span>Nama role</span>
+          <input bind:value={editName} placeholder="Contoh: Auditor" />
         </label>
 
         <label>
-          <span>Grup</span>
-          <input
-            id="perm-group"
-            list="perm-groups"
-            bind:value={permGroup}
-            placeholder="Pilih grup yang ada atau ketik grup baru"
-          />
-          <datalist id="perm-groups">
-            {#each groupNames as g}
-              <option value={g}></option>
-            {/each}
-          </datalist>
+          <span>Deskripsi</span>
+          <input bind:value={editDescription} placeholder="Contoh: Hanya melihat dan menyetujui" />
         </label>
 
-        {#if permError}<p class="error">{permError}</p>{/if}
+        <fieldset class="perm-pick">
+          <legend>Permission</legend>
+          <div class="perm-grid">
+            {#each permissions as perm}
+              <label class="check">
+                <input
+                  type="checkbox"
+                  checked={!!editPerms[perm.key]}
+                  onchange={() => toggleEditPerm(perm.key)}
+                />
+                <span>{perm.label}</span>
+              </label>
+            {/each}
+          </div>
+        </fieldset>
+
+        {#if editError}<p class="error">{editError}</p>{/if}
 
         <div class="actions">
-          <button type="button" class="ghost" onclick={closeAddPerm}>Batal</button>
-          <button type="submit" class="primary">Simpan permission</button>
+          <button type="button" class="ghost" onclick={closeEdit}>Batal</button>
+          <button type="submit" class="primary">Simpan perubahan</button>
         </div>
       </form>
     </div>
@@ -392,28 +391,20 @@
       {@render glass()}
 
       <div class="modal-body">
-        {#if confirm.kind === 'role'}
-          <h2 id="confirm-title">Hapus role "{confirm.name}"?</h2>
-          {#if confirm.users > 0}
-            <p class="lead">
-              Role ini masih dipakai <strong>{confirm.users} user</strong>. Pindahkan user-nya ke role lain
-              dulu di halaman User, baru role bisa dihapus.
-            </p>
-          {:else}
-            <p class="lead">Role dan semua centang permission-nya akan dihapus. Tindakan ini tidak bisa dibatalkan.</p>
-          {/if}
-        {:else}
-          <h2 id="confirm-title">Hapus permission "{confirm.label}"?</h2>
+        <h2 id="confirm-title">Hapus role "{confirm.name}"?</h2>
+        {#if confirm.users > 0}
           <p class="lead">
-            Baris ini hilang dari matriks dan centangnya di semua role ikut terhapus. Tindakan ini tidak bisa
-            dibatalkan.
+            Role ini masih dipakai <strong>{confirm.users} user</strong>. Pindahkan user-nya ke role lain
+            dulu di halaman User, baru role bisa dihapus.
           </p>
+        {:else}
+          <p class="lead">Role dan semua centang permission-nya akan dihapus. Tindakan ini tidak bisa dibatalkan.</p>
         {/if}
 
         {#if confirmError}<p class="error">{confirmError}</p>{/if}
 
         <div class="actions">
-          {#if confirm.kind === 'role' && confirm.users > 0}
+          {#if confirm.users > 0}
             <button type="button" class="primary" onclick={closeConfirm}>Mengerti</button>
           {:else}
             <button type="button" class="ghost" onclick={closeConfirm}>Batal</button>
@@ -437,6 +428,13 @@
     <path d="M8 6V4h8v2" />
     <path d="M6 6l1 14h10l1-14" />
     <path d="M10 11v6M14 11v6" />
+  </svg>
+{/snippet}
+
+{#snippet editIcon()}
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 20h9" />
+    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
   </svg>
 {/snippet}
 
@@ -543,7 +541,7 @@
     background: rgba(255, 255, 255, 1);
   }
 
-  .icon-del {
+  .icon-btn {
     width: 28px;
     height: 28px;
     flex-shrink: 0;
@@ -557,17 +555,16 @@
     transition: background 0.15s ease, color 0.15s ease;
   }
 
+  .icon-btn:hover,
+  .icon-btn:focus-visible {
+    background: rgba(0, 0, 0, 0.06);
+    color: #1a1a1a;
+  }
+
   .icon-del:hover,
   .icon-del:focus-visible {
     background: rgba(180, 35, 24, 0.1);
     color: #b42318;
-  }
-
-  .perm-cell {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
   }
 
   .empty {

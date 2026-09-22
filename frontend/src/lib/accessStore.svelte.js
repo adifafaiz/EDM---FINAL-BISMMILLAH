@@ -474,6 +474,35 @@ export function createRole(payload) {
   return role
 }
 
+/**
+ * @param {number} roleId
+ * @param {{ name: string, description?: string, permissions?: Record<string, boolean> }} payload
+ * @returns {{ ok: true } | { ok: false, reason: string }}
+ */
+export function updateRole(roleId, payload) {
+  const role = getRole(roleId)
+  if (!role) return { ok: false, reason: 'Role tidak ditemukan' }
+  const name = payload.name.trim()
+  if (!name) return { ok: false, reason: 'Nama role wajib diisi' }
+  if (accessStore.roles.some((r) => r.id !== roleId && r.name.toLowerCase() === name.toLowerCase())) {
+    return { ok: false, reason: 'Nama role sudah dipakai' }
+  }
+  accessStore.roles = accessStore.roles.map((r) =>
+    r.id === roleId
+      ? {
+          ...r,
+          name,
+          description: (payload.description || '').trim(),
+          permissions: payload.permissions
+            ? allPermissions(accessStore.permissions, payload.permissions)
+            : r.permissions,
+        }
+      : r,
+  )
+  persist()
+  return { ok: true }
+}
+
 /** @param {number} roleId @param {string} permKey @param {boolean} value */
 export function setRolePermission(roleId, permKey, value) {
   const role = getRole(roleId)
