@@ -3,16 +3,129 @@
   import SubmenuHeader from '../lib/SubmenuHeader.svelte'
   import {
     accessStore,
-    permissionCatalog,
+    createRole,
+    deleteRole,
+    createPermission,
+    deletePermission,
     setRolePermission,
     countUsersInRole,
   } from '../lib/accessStore.svelte.js'
 
   const roles = $derived(accessStore.roles)
+  const permissions = $derived(accessStore.permissions)
+
+  let addOpen = $state(false)
+  let name = $state('')
+  let description = $state('')
+  let newPerms = $state(/** @type {Record<string, boolean>} */ ({}))
+  let error = $state('')
+
+  function openAdd() {
+    name = ''
+    description = ''
+    newPerms = {}
+    error = ''
+    addOpen = true
+  }
+
+  function closeAdd() {
+    addOpen = false
+  }
+
+  let permOpen = $state(false)
+  let permLabel = $state('')
+  let permGroup = $state('')
+  let permError = $state('')
+
+  function openAddPerm() {
+    permLabel = ''
+    permGroup = ''
+    permError = ''
+    permOpen = true
+  }
+
+  function closeAddPerm() {
+    permOpen = false
+  }
+
+  /** @param {SubmitEvent} event */
+  function onAddPermSubmit(event) {
+    event.preventDefault()
+    const result = createPermission({ label: permLabel, group: permGroup })
+    if (!result.ok) {
+      permError = result.reason
+      return
+    }
+    permOpen = false
+  }
+
+  /** @type {{ kind: 'role', id: number, name: string, users: number } | { kind: 'permission', key: string, label: string } | null} */
+  let confirm = $state(null)
+  let confirmError = $state('')
+
+  /** @param {import('../lib/accessStore.svelte.js').AccessRole} role */
+  function askDeleteRole(role) {
+    confirmError = ''
+    confirm = { kind: 'role', id: role.id, name: role.name, users: countUsersInRole(role.id) }
+  }
+
+  /** @param {import('../lib/accessStore.svelte.js').AccessPermission} perm */
+  function askDeletePermission(perm) {
+    confirmError = ''
+    confirm = { kind: 'permission', key: perm.key, label: perm.label }
+  }
+
+  function closeConfirm() {
+    confirm = null
+  }
+
+  function onConfirmDelete() {
+    if (!confirm) return
+    if (confirm.kind === 'role') {
+      const result = deleteRole(confirm.id)
+      if (!result.ok) {
+        confirmError = result.reason
+        return
+      }
+    } else {
+      deletePermission(confirm.key)
+    }
+    confirm = null
+  }
+
+  /** @param {string} key */
+  function toggleNewPerm(key) {
+    newPerms = { ...newPerms, [key]: !newPerms[key] }
+  }
+
+  /** @param {SubmitEvent} event */
+  function onAddSubmit(event) {
+    event.preventDefault()
+    error = ''
+    const clean = name.trim()
+    if (!clean) {
+      error = 'Nama role wajib diisi'
+      return
+    }
+    if (roles.some((r) => r.name.toLowerCase() === clean.toLowerCase())) {
+      error = 'Nama role sudah dipakai'
+      return
+    }
+    createRole({ name: clean, description, permissions: newPerms })
+    addOpen = false
+  }
+
+  /** @param {KeyboardEvent} e */
+  function onKeydown(e) {
+    if (e.key !== 'Escape') return
+    closeAdd()
+    closeAddPerm()
+    closeConfirm()
+  }
 
   /** @param {import('../lib/accessStore.svelte.js').AccessRole} role */
   function enabledCount(role) {
-    return Object.values(role.permissions).filter(Boolean).length
+    return permissions.filter((p) => role.permissions[p.key]).length
   }
 
   /** @param {import('../lib/accessStore.svelte.js').AccessRole} role @param {string} key */
@@ -28,15 +141,17 @@
   }
 
   const groups = $derived.by(() => {
-    /** @type {Map<string, typeof permissionCatalog>} */
+    /** @type {Map<string, typeof permissions>} */
     const map = new Map()
-    for (const p of permissionCatalog) {
+    for (const p of permissions) {
       const list = map.get(p.group) || []
       list.push(p)
       map.set(p.group, list)
     }
     return [...map.entries()]
   })
+
+  const groupNames = $derived(groups.map(([g]) => g))
 </script>
 
 <section class="page">
@@ -46,7 +161,14 @@
       title="Role Management"
       sub="Daftar peran dan matriks permission"
       meta={`${roles.length} role`}
-    />
+    >
+      {#snippet actions()}
+        <div class="head-actions">
+          <button type="button" class="btn-secondary" onclick={openAddPerm}>+ Tambah Permission</button>
+          <button type="button" class="btn-primary" onclick={openAdd}>+ Tambah Role</button>
+        </div>
+      {/snippet}
+    </SubmenuHeader>
   </GlassPanel>
 
   <GlassPanel class="fill">
@@ -58,11 +180,22 @@
             <article class="role-card">
               <div class="role-head">
                 <strong>{role.name}</strong>
-                <span class="count">{countUsersInRole(role.id)} user</span>
+                <div class="role-meta">
+                  <span class="count">{countUsersInRole(role.id)} user</span>
+                  <button
+                    type="button"
+                    class="icon-del"
+                    title={`Hapus role ${role.name}`}
+                    aria-label={`Hapus role ${role.name}`}
+                    onclick={() => askDeleteRole(role)}
+                  >
+                    {@render trashIcon()}
+                  </button>
+                </div>
               </div>
               <p>{role.description}</p>
               <div class="perm-summary">
-                <span class="chip">{enabledCount(role)}/{permissionCatalog.length} permission</span>
+                <span class="chip">{enabledCount(role)}/{permissions.length} permission</span>
               </div>
             </article>
           {/each}
@@ -83,13 +216,33 @@
               </tr>
             </thead>
             <tbody>
+              {#if permissions.length === 0}
+                <tr>
+                  <td class="empty" colspan={roles.length + 1}>
+                    Belum ada permission. Klik "+ Tambah Permission" untuk membuat.
+                  </td>
+                </tr>
+              {/if}
               {#each groups as [group, perms]}
                 <tr class="group-row">
                   <td colspan={roles.length + 1}>{group}</td>
                 </tr>
                 {#each perms as perm}
                   <tr>
-                    <td class="sticky-col perm-label">{perm.label}</td>
+                    <td class="sticky-col perm-label">
+                      <div class="perm-cell">
+                        <span>{perm.label}</span>
+                        <button
+                          type="button"
+                          class="icon-del"
+                          title={`Hapus permission ${perm.label}`}
+                          aria-label={`Hapus permission ${perm.label}`}
+                          onclick={() => askDeletePermission(perm)}
+                        >
+                          {@render trashIcon()}
+                        </button>
+                      </div>
+                    </td>
                     {#each roles as role}
                       <td class="cell-check">
                         <label class="toggle" title={`${perm.label} · ${role.name}`}>
@@ -112,6 +265,180 @@
     </div>
   </GlassPanel>
 </section>
+
+{#if addOpen}
+  <div class="backdrop" role="presentation" onclick={closeAdd} onkeydown={onKeydown}>
+    <div
+      class="modal liquidGlass-wrapper"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="add-role-title"
+      tabindex="-1"
+      onclick={(e) => e.stopPropagation()}
+      onkeydown={onKeydown}
+    >
+      {@render glass()}
+
+      <form class="modal-body" onsubmit={onAddSubmit}>
+        <div class="modal-head">
+          <div>
+            <h2 id="add-role-title">Tambah Role</h2>
+            <p>Buat peran baru, lalu atur permission-nya</p>
+          </div>
+          <button type="button" class="close" aria-label="Tutup" onclick={closeAdd}>×</button>
+        </div>
+
+        <label>
+          <span>Nama role</span>
+          <input bind:value={name} placeholder="Contoh: Auditor" />
+        </label>
+
+        <label>
+          <span>Deskripsi</span>
+          <input bind:value={description} placeholder="Contoh: Hanya melihat dan menyetujui" />
+        </label>
+
+        <fieldset class="perm-pick">
+          <legend>Permission awal (opsional)</legend>
+          <div class="perm-grid">
+            {#each permissions as perm}
+              <label class="check">
+                <input
+                  type="checkbox"
+                  checked={!!newPerms[perm.key]}
+                  onchange={() => toggleNewPerm(perm.key)}
+                />
+                <span>{perm.label}</span>
+              </label>
+            {/each}
+          </div>
+        </fieldset>
+
+        {#if error}<p class="error">{error}</p>{/if}
+
+        <div class="actions">
+          <button type="button" class="ghost" onclick={closeAdd}>Batal</button>
+          <button type="submit" class="primary">Simpan role</button>
+        </div>
+      </form>
+    </div>
+  </div>
+{/if}
+
+{#if permOpen}
+  <div class="backdrop" role="presentation" onclick={closeAddPerm} onkeydown={onKeydown}>
+    <div
+      class="modal small liquidGlass-wrapper"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="add-perm-title"
+      tabindex="-1"
+      onclick={(e) => e.stopPropagation()}
+      onkeydown={onKeydown}
+    >
+      {@render glass()}
+
+      <form class="modal-body" onsubmit={onAddPermSubmit}>
+        <div class="modal-head">
+          <div>
+            <h2 id="add-perm-title">Tambah Permission</h2>
+            <p>Baris baru muncul di matriks, awalnya nonaktif untuk semua role</p>
+          </div>
+          <button type="button" class="close" aria-label="Tutup" onclick={closeAddPerm}>×</button>
+        </div>
+
+        <label>
+          <span>Nama permission</span>
+          <input id="perm-label" bind:value={permLabel} placeholder="Contoh: Hapus Task" />
+        </label>
+
+        <label>
+          <span>Grup</span>
+          <input
+            id="perm-group"
+            list="perm-groups"
+            bind:value={permGroup}
+            placeholder="Pilih grup yang ada atau ketik grup baru"
+          />
+          <datalist id="perm-groups">
+            {#each groupNames as g}
+              <option value={g}></option>
+            {/each}
+          </datalist>
+        </label>
+
+        {#if permError}<p class="error">{permError}</p>{/if}
+
+        <div class="actions">
+          <button type="button" class="ghost" onclick={closeAddPerm}>Batal</button>
+          <button type="submit" class="primary">Simpan permission</button>
+        </div>
+      </form>
+    </div>
+  </div>
+{/if}
+
+{#if confirm}
+  <div class="backdrop" role="presentation" onclick={closeConfirm} onkeydown={onKeydown}>
+    <div
+      class="modal small liquidGlass-wrapper"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="confirm-title"
+      tabindex="-1"
+      onclick={(e) => e.stopPropagation()}
+      onkeydown={onKeydown}
+    >
+      {@render glass()}
+
+      <div class="modal-body">
+        {#if confirm.kind === 'role'}
+          <h2 id="confirm-title">Hapus role "{confirm.name}"?</h2>
+          {#if confirm.users > 0}
+            <p class="lead">
+              Role ini masih dipakai <strong>{confirm.users} user</strong>. Pindahkan user-nya ke role lain
+              dulu di halaman User, baru role bisa dihapus.
+            </p>
+          {:else}
+            <p class="lead">Role dan semua centang permission-nya akan dihapus. Tindakan ini tidak bisa dibatalkan.</p>
+          {/if}
+        {:else}
+          <h2 id="confirm-title">Hapus permission "{confirm.label}"?</h2>
+          <p class="lead">
+            Baris ini hilang dari matriks dan centangnya di semua role ikut terhapus. Tindakan ini tidak bisa
+            dibatalkan.
+          </p>
+        {/if}
+
+        {#if confirmError}<p class="error">{confirmError}</p>{/if}
+
+        <div class="actions">
+          {#if confirm.kind === 'role' && confirm.users > 0}
+            <button type="button" class="primary" onclick={closeConfirm}>Mengerti</button>
+          {:else}
+            <button type="button" class="ghost" onclick={closeConfirm}>Batal</button>
+            <button type="button" class="danger" onclick={onConfirmDelete}>Hapus</button>
+          {/if}
+        </div>
+      </div>
+    </div>
+  </div>
+{/if}
+
+{#snippet glass()}
+  <div class="liquidGlass-effect"></div>
+  <div class="liquidGlass-tint"></div>
+  <div class="liquidGlass-shine"></div>
+{/snippet}
+
+{#snippet trashIcon()}
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M3 6h18" />
+    <path d="M8 6V4h8v2" />
+    <path d="M6 6l1 14h10l1-14" />
+    <path d="M10 11v6M14 11v6" />
+  </svg>
+{/snippet}
 
 <style>
   .page {
@@ -178,6 +505,75 @@
     justify-content: space-between;
     gap: 8px;
     margin-bottom: 6px;
+  }
+
+  .role-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .head-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn-secondary {
+    height: 40px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 999px;
+    padding: 0 1.15rem;
+    background: rgba(255, 255, 255, 0.82);
+    color: #1a1a1a;
+    font: inherit;
+    font-size: 0.84rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 1);
+  }
+
+  .icon-del {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    display: inline-grid;
+    place-items: center;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: #9a9aa0;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .icon-del:hover,
+  .icon-del:focus-visible {
+    background: rgba(180, 35, 24, 0.1);
+    color: #b42318;
+  }
+
+  .perm-cell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .empty {
+    padding: 1.5rem 0.75rem;
+    color: #8a8a90;
+    font-size: 0.82rem;
   }
 
   .role-head strong {
@@ -336,6 +732,228 @@
       border-bottom: 1px solid rgba(0, 0, 0, 0.06);
       padding-bottom: 12px;
       max-height: 240px;
+    }
+  }
+
+  /* ── Modal tambah role ── */
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(20, 20, 22, 0.35);
+    backdrop-filter: blur(6px);
+  }
+
+  .modal.small {
+    width: min(440px, 100%);
+  }
+
+  .lead {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #4a4a4a;
+  }
+
+  .modal-body h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 750;
+  }
+
+  .danger {
+    border: none;
+    border-radius: 999px;
+    padding: 10px 16px;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 650;
+    cursor: pointer;
+    background: #b42318;
+    color: #fff;
+  }
+
+  .modal {
+    width: min(520px, 100%);
+    max-height: calc(100vh - 40px);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+  }
+
+  .liquidGlass-wrapper {
+    position: relative;
+    display: flex;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .liquidGlass-effect {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.42);
+    pointer-events: none;
+  }
+
+  .liquidGlass-tint {
+    z-index: 1;
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.28);
+    pointer-events: none;
+  }
+
+  .liquidGlass-shine {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    box-shadow:
+      inset 2px 2px 1px 0 rgba(255, 255, 255, 0.5),
+      inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5);
+  }
+
+  .modal-body {
+    position: relative;
+    z-index: 3;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.55);
+  }
+
+  .modal-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .modal-head h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 750;
+  }
+
+  .modal-head p {
+    margin: 4px 0 0;
+    font-size: 0.78rem;
+    color: #6b6b6b;
+  }
+
+  .close {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.06);
+    color: #1a1a1a;
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .modal-body label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .modal-body label span {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #6b6b6b;
+  }
+
+  .modal-body input:not([type='checkbox']) {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 0.88rem;
+  }
+
+  .perm-pick {
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    border-radius: 14px;
+    padding: 10px 12px;
+    margin: 0;
+  }
+
+  .perm-pick legend {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #6b6b6b;
+    padding: 0 4px;
+  }
+
+  .perm-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 10px;
+    margin-top: 6px;
+  }
+
+  .modal-body label.check {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  .modal-body label.check span {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  .error {
+    margin: 0;
+    font-size: 0.75rem;
+    color: #b42318;
+    font-weight: 600;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .ghost,
+  .primary {
+    border: none;
+    border-radius: 999px;
+    padding: 10px 16px;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  .ghost {
+    background: transparent;
+    color: #5a5a5a;
+  }
+
+  .primary {
+    background: #1a1a1a;
+    color: #fff;
+  }
+
+  @media (max-width: 520px) {
+    .perm-grid {
+      grid-template-columns: 1fr;
     }
   }
 </style>

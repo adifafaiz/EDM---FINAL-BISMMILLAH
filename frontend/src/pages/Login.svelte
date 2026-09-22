@@ -4,75 +4,29 @@
   import logoFull from '../assets/edm-logo.png'
   import logoLight from '../assets/edm-logo-white.png'
 
-  /** Dummy credentials */
-  const DUMMY_USERS = [
-    { username: 'admin', password: 'admin123', name: 'Administrator', role: 'Super Admin' },
-    { username: 'farras', password: 'farras123', name: 'Farras Al-Risyad', role: 'Operator' },
-    { username: 'operator', password: 'ops2024', name: 'Operator EDM', role: 'Operator' },
-  ]
-
-  const ROLES = [
-    { value: 'super-admin', label: 'Super Admin' },
-    { value: 'operator', label: 'Operator' },
-  ]
-
   const FEATURES = [
     { label: 'Real-time', color: '#7c8cf8' },
     { label: 'Analytics', color: '#34d399' },
     { label: 'Terintegrasi', color: '#f59e0b' },
   ]
 
-  let role = $state('')
   let username = $state('')
   let password = $state('')
   let remember = $state(true)
   let showPassword = $state(false)
-  let loading = $state(false)
-  let errorMsg = $state('')
-  let shake = $state(false)
   let focused = $state(/** @type {string|null} */ (null))
 
-  async function handleLogin(e) {
+  /** Sementara: tanpa validasi, langsung ke dashboard (sambungkan ke API login nanti). */
+  function handleLogin(e) {
     e.preventDefault()
-    if (loading) return
-    errorMsg = ''
-    loading = true
-
-    await new Promise((r) => setTimeout(r, 900))
-
-    const user = DUMMY_USERS.find(
-      (u) => u.username === username.trim() && u.password === password,
-    )
-
-    if (user) {
-      localStorage.setItem(
-        'edm-session',
-        JSON.stringify({
-          username: user.username,
-          name: user.name,
-          role: user.role,
-          remember,
-          loginAt: new Date().toISOString(),
-        }),
-      )
-      loading = false
-      push('/')
-    } else {
-      loading = false
-      errorMsg = 'Username atau password salah. Silakan coba lagi.'
-      shake = true
-      setTimeout(() => {
-        shake = false
-      }, 600)
-    }
+    push('/')
   }
 </script>
 
 <div class="login-page" in:fade={{ duration: 320 }}>
-  <div class="login-frame" class:shake in:fly={{ y: 18, duration: 420 }}>
+  <div class="login-frame" in:fly={{ y: 18, duration: 420 }}>
     <!-- ── Left brand panel ── -->
     <aside class="brand-panel" aria-label="EDM Task Monitoring">
-      <div class="brand-grid" aria-hidden="true"></div>
       <div class="brand-glow" aria-hidden="true"></div>
       <div class="brand-glow-2" aria-hidden="true"></div>
       <div class="brand-glow-3" aria-hidden="true"></div>
@@ -154,46 +108,6 @@
         </span>
 
         <form class="form" onsubmit={handleLogin} novalidate>
-          <div class="field">
-            <label for="role">Pilih Role</label>
-            <div class="input-shell select-shell">
-              <span class="input-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <circle cx="9" cy="8" r="2.6" stroke="currentColor" stroke-width="1.7" />
-                  <path
-                    d="M4 18c.6-2.6 2.3-4 5-4s4.4 1.4 5 4"
-                    stroke="currentColor"
-                    stroke-width="1.7"
-                    stroke-linecap="round"
-                  />
-                  <path
-                    d="M15 5.3c1.6.35 2.7 1.5 2.7 3.2 0 1.3-.66 2.3-1.66 2.86M17 13.4c1.9.5 3 1.9 3 4.1"
-                    stroke="currentColor"
-                    stroke-width="1.7"
-                    stroke-linecap="round"
-                  />
-                </svg>
-              </span>
-              <select id="role" bind:value={role} disabled={loading} required>
-                <option value="" disabled selected>Pilih role</option>
-                {#each ROLES as r}
-                  <option value={r.value}>{r.label}</option>
-                {/each}
-              </select>
-              <span class="chevron" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M6 9l6 6 6-6"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
-              </span>
-            </div>
-          </div>
-
           <div class="field" class:on={focused === 'username'}>
             <label for="username">Username</label>
             <div class="input-shell">
@@ -216,13 +130,10 @@
                 bind:value={username}
                 onfocus={() => {
                   focused = 'username'
-                  errorMsg = ''
                 }}
                 onblur={() => {
                   focused = null
                 }}
-                disabled={loading}
-                required
               />
             </div>
           </div>
@@ -249,13 +160,10 @@
                 bind:value={password}
                 onfocus={() => {
                   focused = 'password'
-                  errorMsg = ''
                 }}
                 onblur={() => {
                   focused = null
                 }}
-                disabled={loading}
-                required
               />
               <button
                 type="button"
@@ -292,43 +200,23 @@
 
           <div class="form-row">
             <label class="check">
-              <input type="checkbox" bind:checked={remember} disabled={loading} />
+              <input type="checkbox" bind:checked={remember} />
               <span>Ingat saya</span>
             </label>
-            <button type="button" class="link-quiet" disabled={loading}>Lupa password?</button>
+            <button type="button" class="link-quiet">Lupa password?</button>
           </div>
 
-          {#if errorMsg}
-            <div class="error" in:fly={{ y: -6, duration: 220 }}>
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.7" />
-                <path d="M12 8v4.5M12 15.5v.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-              </svg>
-              {errorMsg}
-            </div>
-          {/if}
-
-          <button
-            type="submit"
-            class="btn-primary"
-            disabled={loading || !role || !username || !password}
-            aria-busy={loading}
-          >
-            {#if loading}
-              <span class="spinner" aria-hidden="true"></span>
-              Memverifikasi…
-            {:else}
-              Masuk ke Dashboard
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path
-                  d="M5 12h14M13 6l6 6-6 6"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            {/if}
+          <button type="submit" class="btn-primary">
+            Masuk ke Dashboard
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M5 12h14M13 6l6 6-6 6"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
           </button>
         </form>
 
@@ -360,32 +248,6 @@
     background: #fff;
   }
 
-  .login-frame.shake {
-    animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
-  }
-
-  @keyframes shake {
-    10%,
-    90% {
-      transform: translateX(-3px);
-    }
-    20%,
-    80% {
-      transform: translateX(5px);
-    }
-    30%,
-    70% {
-      transform: translateX(-5px);
-    }
-    40%,
-    60% {
-      transform: translateX(4px);
-    }
-    50% {
-      transform: translateX(-4px);
-    }
-  }
-
   /* ── Brand panel ── */
   .brand-panel {
     position: relative;
@@ -399,18 +261,6 @@
     background:
       radial-gradient(ellipse 70% 60% at 12% 90%, rgba(88, 40, 160, 0.28), transparent 55%),
       linear-gradient(160deg, #12142a 0%, #0b0d1e 55%, #05060f 100%);
-  }
-
-  .brand-grid {
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
-    background-size: 44px 44px;
-    -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, #000 40%, transparent 85%);
-    mask-image: radial-gradient(ellipse 90% 80% at 50% 40%, #000 40%, transparent 85%);
-    pointer-events: none;
   }
 
   .brand-watermark {
@@ -582,25 +432,25 @@
   .brand-copy {
     display: flex;
     flex-direction: column;
-    gap: 18px;
-    max-width: 380px;
+    gap: 22px;
+    max-width: 620px;
   }
 
   .brand-title {
     margin: 0;
-    font-size: clamp(1.85rem, 3.2vw, 2.45rem);
+    font-size: clamp(2.4rem, 4.4vw, 3.6rem);
     font-weight: 780;
     letter-spacing: -0.04em;
-    line-height: 1.12;
+    line-height: 1.1;
   }
 
   .brand-sub {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: 1.15rem;
     font-weight: 500;
-    line-height: 1.55;
-    color: rgba(255, 255, 255, 0.62);
-    max-width: 320px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.66);
+    max-width: 500px;
   }
 
   .brand-tags {
@@ -783,8 +633,7 @@
     color: #5a5a5e;
   }
 
-  .input-shell input,
-  .input-shell select {
+  .input-shell input {
     width: 100%;
     height: 48px;
     padding: 0 42px 0 40px;
@@ -802,30 +651,6 @@
       box-shadow 0.2s ease;
   }
 
-  .input-shell select {
-    appearance: none;
-    cursor: pointer;
-  }
-
-  .input-shell select:invalid {
-    color: #b0b0b5;
-  }
-
-  .input-shell select:focus {
-    background: #fff;
-    border-color: rgba(26, 26, 26, 0.18);
-    box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.06);
-  }
-
-  .input-shell:has(select:focus) .input-icon,
-  .input-shell:has(select:focus) .chevron {
-    color: #5a5a5e;
-  }
-
-  .field:has(select:focus) label {
-    color: #1a1a1a;
-  }
-
   .input-shell input::placeholder {
     color: #b0b0b5;
     font-weight: 450;
@@ -835,28 +660,6 @@
     background: #fff;
     border-color: rgba(26, 26, 26, 0.18);
     box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.06);
-  }
-
-  .input-shell input:disabled,
-  .input-shell select:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-  }
-
-  .chevron {
-    position: absolute;
-    right: 14px;
-    width: 14px;
-    height: 14px;
-    color: #aeaeb2;
-    pointer-events: none;
-    display: grid;
-    place-items: center;
-  }
-
-  .chevron svg {
-    width: 14px;
-    height: 14px;
   }
 
   .eye {
@@ -930,27 +733,6 @@
     cursor: not-allowed;
   }
 
-  .error {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 10px 12px;
-    border-radius: 11px;
-    background: rgba(255, 59, 48, 0.08);
-    border: 1px solid rgba(255, 59, 48, 0.16);
-    color: #c0392b;
-    font-size: 0.78rem;
-    font-weight: 600;
-    line-height: 1.35;
-  }
-
-  .error svg {
-    width: 14px;
-    height: 14px;
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-
   .btn-primary {
     display: flex;
     align-items: center;
@@ -996,21 +778,6 @@
     box-shadow: none;
   }
 
-  .spinner {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.28);
-    border-top-color: #fff;
-    animation: spin 0.7s linear infinite;
-  }
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
   .divider {
     display: flex;
     align-items: center;
@@ -1052,7 +819,11 @@
     }
 
     .brand-title {
-      font-size: 1.7rem;
+      font-size: 2.2rem;
+    }
+
+    .brand-sub {
+      font-size: 1rem;
     }
 
     .brand-tags {

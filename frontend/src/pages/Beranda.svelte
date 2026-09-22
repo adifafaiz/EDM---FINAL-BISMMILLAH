@@ -4,6 +4,7 @@
   import avatarFarras from '../assets/avatar-farras.jpg'
   import logoFull from '../assets/edm-logo.png'
   import NotificationBell from '../lib/NotificationBell.svelte'
+  import GlassSwitch from '../lib/GlassSwitch.svelte'
   import { link } from 'svelte-spa-router'
   import {
     addDays,
@@ -504,18 +505,13 @@
         <img src={logoFull} alt="EDM Task Monitoring" />
       </a>
 
-      <div class="period-pills" role="tablist" aria-label="Time range" use:switchThumb={period}>
-        {#each periodOptions as opt}
-          <button
-            type="button"
-            role="tab"
-            class:on={period === opt.id}
-            aria-selected={period === opt.id}
-            onclick={() => (period = /** @type {'today' | 'week' | 'month'} */ (opt.id))}
-          >
-            {opt.label}
-          </button>
-        {/each}
+      <div class="period-slot">
+        <GlassSwitch
+          label="Time range"
+          options={periodOptions}
+          value={period}
+          onchange={(id) => (period = /** @type {'today' | 'week' | 'month'} */ (id))}
+        />
       </div>
 
       <div class="topbar-right">
@@ -1077,65 +1073,9 @@
     image-rendering: -webkit-optimize-contrast;
   }
 
-  .period-pills {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
+  .period-slot {
+    display: flex;
     justify-self: center;
-    gap: 0;
-    flex-wrap: nowrap;
-    padding: 3px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
-  }
-
-  .period-pills :global(.switch-thumb) {
-    position: absolute;
-    top: 3px;
-    left: 0;
-    height: calc(100% - 6px);
-    width: 0;
-    border-radius: 999px;
-    background: #1a1a1a;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
-    z-index: 0;
-    pointer-events: none;
-    will-change: transform, width;
-  }
-
-  .period-pills :global(.switch-thumb.ready) {
-    transition:
-      transform 0.32s cubic-bezier(0.32, 0.72, 0, 1),
-      width 0.32s cubic-bezier(0.32, 0.72, 0, 1);
-  }
-
-  .period-pills button {
-    position: relative;
-    z-index: 1;
-    height: 34px;
-    padding: 0 18px;
-    border-radius: 999px;
-    border: none;
-    background: transparent;
-    color: #1a1a1a;
-    font: inherit;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: color 0.2s ease;
-  }
-
-  .period-pills button:hover {
-    color: #000;
-  }
-
-  .period-pills button.on {
-    color: #fff;
-    background: transparent;
-    border-color: transparent;
-    box-shadow: none;
   }
 
   .topbar-right {
@@ -2684,12 +2624,8 @@
     }
 
     .brand-logo,
-    .period-pills,
+    .period-slot,
     .topbar-right {
-      justify-self: start;
-    }
-
-    .period-pills {
       justify-self: start;
     }
 

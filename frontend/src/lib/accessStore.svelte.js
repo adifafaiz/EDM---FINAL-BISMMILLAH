@@ -13,6 +13,13 @@
  */
 
 /**
+ * @typedef {Object} AccessPermission
+ * @property {string} key
+ * @property {string} label
+ * @property {string} group
+ */
+
+/**
  * @typedef {Object} AccessRole
  * @property {number} id
  * @property {string} name
@@ -34,7 +41,8 @@
 
 const STORAGE_KEY = 'edm-fe-access-v1'
 
-export const permissionCatalog = [
+/** @type {AccessPermission[]} */
+const defaultPermissions = [
   { key: 'view_monitoring', label: 'Lihat Operation Monitoring', group: 'Monitoring' },
   { key: 'manage_tasks', label: 'Kelola Tasks', group: 'Tasks' },
   { key: 'manage_registry', label: 'Kelola Dashboard Registry', group: 'Registry' },
@@ -53,28 +61,29 @@ function nowStamp() {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:00`
 }
 
-/** @param {Record<string, boolean>} overrides */
-function allPermissions(overrides = {}) {
+/** @param {AccessPermission[]} list @param {Record<string, boolean>} overrides */
+function allPermissions(list, overrides = {}) {
   /** @type {Record<string, boolean>} */
   const base = {}
-  for (const p of permissionCatalog) base[p.key] = false
+  for (const p of list) base[p.key] = false
   return { ...base, ...overrides }
 }
 
-/** @returns {{ users: AccessUser[], roles: AccessRole[], teams: AccessTeam[] }} */
+/** @returns {{ users: AccessUser[], roles: AccessRole[], teams: AccessTeam[], permissions: AccessPermission[] }} */
 function seedAccess() {
+  const permissions = defaultPermissions.map((p) => ({ ...p }))
   const roles = [
     {
       id: 1,
       name: 'Admin',
       description: 'Akses penuh ke seluruh modul dan konfigurasi sistem.',
-      permissions: allPermissions(Object.fromEntries(permissionCatalog.map((p) => [p.key, true]))),
+      permissions: allPermissions(permissions, Object.fromEntries(permissions.map((p) => [p.key, true]))),
     },
     {
       id: 2,
       name: 'Supervisor',
       description: 'Mengawasi operasional dan registry tanpa mengubah role.',
-      permissions: allPermissions({
+      permissions: allPermissions(permissions, {
         view_monitoring: true,
         manage_tasks: true,
         manage_registry: true,
@@ -87,7 +96,7 @@ function seedAccess() {
       id: 3,
       name: 'PIC',
       description: 'Penanggung jawab task dan dashboard terkait.',
-      permissions: allPermissions({
+      permissions: allPermissions(permissions, {
         view_monitoring: true,
         manage_tasks: true,
         view_activity_log: true,
@@ -97,7 +106,7 @@ function seedAccess() {
       id: 4,
       name: 'Viewer',
       description: 'Hanya melihat ringkasan operasional.',
-      permissions: allPermissions({ view_monitoring: true, view_activity_log: true }),
+      permissions: allPermissions(permissions, { view_monitoring: true, view_activity_log: true }),
     },
   ]
 
@@ -257,7 +266,7 @@ function seedAccess() {
     },
   ]
 
-  return { users, roles, teams }
+  return { users, roles, teams, permissions }
 }
 
 function loadAccess() {
@@ -267,6 +276,7 @@ function loadAccess() {
     if (!raw) return seedAccess()
     const parsed = JSON.parse(raw)
     if (!parsed?.users?.length || !parsed?.roles?.length || !parsed?.teams?.length) return seedAccess()
+    if (!Array.isArray(parsed.permissions)) parsed.permissions = defaultPermissions.map((p) => ({ ...p }))
     return parsed
   } catch {
     return seedAccess()
@@ -282,6 +292,8 @@ export const accessStore = $state({
   roles: initial.roles,
   /** @type {AccessTeam[]} */
   teams: initial.teams,
+  /** @type {AccessPermission[]} */
+  permissions: initial.permissions,
 })
 
 function persist() {
@@ -292,6 +304,7 @@ function persist() {
       users: accessStore.users,
       roles: accessStore.roles,
       teams: accessStore.teams,
+      permissions: accessStore.permissions,
     }),
   )
 }
@@ -441,12 +454,91 @@ export function createTeam(payload) {
   return team
 }
 
+/**
+ * @param {{
+ *   name: string,
+ *   description?: string,
+ *   permissions?: Record<string, boolean>,
+ * }} payload
+ */
+export function createRole(payload) {
+  const nextId = accessStore.roles.reduce((max, r) => Math.max(max, r.id), 0) + 1
+  const role = {
+    id: nextId,
+    name: payload.name.trim(),
+    description: (payload.description || '').trim(),
+    permissions: allPermissions(accessStore.permissions, payload.permissions || {}),
+  }
+  accessStore.roles = [...accessStore.roles, role]
+  persist()
+  return role
+}
+
 /** @param {number} roleId @param {string} permKey @param {boolean} value */
 export function setRolePermission(roleId, permKey, value) {
   const role = getRole(roleId)
   if (!role) return false
   role.permissions = { ...role.permissions, [permKey]: value }
   accessStore.roles = [...accessStore.roles]
+  persist()
+  return true
+}
+
+/**
+ * @param {number} roleId
+ * @returns {{ ok: true } | { ok: false, reason: string }}
+ */
+export function deleteRole(roleId) {
+  const role = getRole(roleId)
+  if (!role) return { ok: false, reason: 'Role tidak ditemukan' }
+  const used = countUsersInRole(roleId)
+  if (used > 0) {
+    return { ok: false, reason: `Role masih dipakai ${used} user. Pindahkan user ke role lain dulu.` }
+  }
+  if (accessStore.roles.length <= 1) return { ok: false, reason: 'Minimal harus ada satu role' }
+  accessStore.roles = accessStore.roles.filter((r) => r.id !== roleId)
+  persist()
+  return { ok: true }
+}
+
+/** @param {string} label */
+function slugKey(label) {
+  return label
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+}
+
+/**
+ * @param {{ label: string, group?: string }} payload
+ * @returns {{ ok: true, permission: AccessPermission } | { ok: false, reason: string }}
+ */
+export function createPermission(payload) {
+  const label = payload.label.trim()
+  if (!label) return { ok: false, reason: 'Nama permission wajib diisi' }
+  if (accessStore.permissions.some((p) => p.label.toLowerCase() === label.toLowerCase())) {
+    return { ok: false, reason: 'Nama permission sudah dipakai' }
+  }
+  const base = slugKey(label) || 'permission'
+  let key = base
+  for (let n = 2; accessStore.permissions.some((p) => p.key === key); n++) key = `${base}_${n}`
+  const permission = { key, label, group: (payload.group || '').trim() || 'Lainnya' }
+  accessStore.permissions = [...accessStore.permissions, permission]
+  accessStore.roles = accessStore.roles.map((r) => ({ ...r, permissions: { ...r.permissions, [key]: false } }))
+  persist()
+  return { ok: true, permission }
+}
+
+/** @param {string} key */
+export function deletePermission(key) {
+  if (!accessStore.permissions.some((p) => p.key === key)) return false
+  accessStore.permissions = accessStore.permissions.filter((p) => p.key !== key)
+  accessStore.roles = accessStore.roles.map((r) => {
+    const { [key]: _removed, ...rest } = r.permissions
+    return { ...r, permissions: rest }
+  })
   persist()
   return true
 }
