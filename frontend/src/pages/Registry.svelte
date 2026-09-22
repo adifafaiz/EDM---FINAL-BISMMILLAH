@@ -38,10 +38,6 @@
   const allDashboards = $derived(listDashboards())
   const allItemsCount = $derived(allDashboards.length)
   const activeCount = $derived(allDashboards.filter((d) => d.status === 'active').length)
-  const reviewCount = $derived(
-    allDashboards.filter((d) => d.status === 'draft' || d.status === 'maintenance').length
-  )
-  // const idleCount = $derived(allDashboards.filter((d) => d.status === 'retired').length)
   const idleCount = $derived(allDashboards.filter((d) => d.status === 'idle').length)
 
   function getInitial(name = '') {
@@ -284,21 +280,7 @@
       </div>
       <div class="stat-bottom">
         <div class="stat-value">{idleCount}</div>
-        <div class="stat-sub">tidak aktif · retired</div>
-      </div>
-    </div>
-
-    <!-- Card 4 -->
-    <div class="stat-card yellow-card">
-      <div class="stat-top">
-        <span class="stat-title">Draft & Maintenance</span>
-        <div class="icon-wrapper yellow-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3"/></svg>
-        </div>
-      </div>
-      <div class="stat-bottom">
-        <div class="stat-value">{reviewCount}</div>
-        <div class="stat-sub yellow-sub">perlu peninjauan</div>
+        <div class="stat-sub">tidak aktif</div>
       </div>
     </div>
   </div>
@@ -360,7 +342,6 @@
               <th>PIC</th>
               <th>STATUS DASHBOARD</th>
               <th>LAST UPDATES</th>
-              <th>LINK EXTERNAL</th>
             </tr>
           </thead>
           <tbody>
@@ -417,20 +398,6 @@
                     <span class="date-main">{formatDateDisplay(item.updated_at)}</span>
                     <span class="date-sub">Rev: {item.updated_at ? item.updated_at.slice(0, 10) : '-'}</span>
                   </div>
-                </td>
-
-                <!-- Column 5: Link External -->
-                <td>
-                  <a
-                    href={item.url || `#/registry/${item.id}`}
-                    target={item.url ? "_blank" : "_self"}
-                    rel="noreferrer"
-                    class="external-link-btn"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                    Buka Link
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                  </a>
                 </td>
               </tr>
             {/each}
@@ -1297,19 +1264,9 @@
     color: #16a34a !important;
   }
 
-  .pill-maintenance {
-    background-color: #fef3c7 !important;
-    color: #d97706 !important;
-  }
-
-  .pill-draft {
+  .pill-idle {
     background-color: #f1f5f9 !important;
     color: #64748b !important;
-  }
-
-  .pill-retired {
-    background-color: #fee2e2 !important;
-    color: #dc2626 !important;
   }
 
   .status-dropdown {
@@ -1352,25 +1309,6 @@
   .date-sub {
     font-size: 0.75rem;
     color: #94a3b8;
-  }
-
-  /* External Link Button */
-  .external-link-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    background: #f1f5f9;
-    color: #0284c7;
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 0.35rem 0.75rem;
-    border-radius: 999px;
-    text-decoration: none;
-    transition: background 0.2s ease;
-  }
-
-  .external-link-btn:hover {
-    background: #e2e8f0;
   }
 
   .empty-state {

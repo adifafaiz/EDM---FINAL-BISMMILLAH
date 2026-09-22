@@ -1,4 +1,4 @@
-/** @typedef {'active' | 'draft' | 'maintenance' | 'retired'} RegistryStatus */
+/** @typedef {'active' | 'idle'} RegistryStatus */
 /** @typedef {'high' | 'medium' | 'low'} Criticality */
 /** @typedef {'open' | 'in_progress' | 'done'} ItemStatus */
 
@@ -164,7 +164,7 @@ function seedDashboards() {
       name: 'CX Dashboard',
       code: 'CX',
       description: 'Customer experience metrics, CSAT, and ticket backlog health.',
-      status: 'maintenance',
+      status: 'idle',
       criticality: 'medium',
       owner: 'Eka Rahma',
       platform: 'Looker',
@@ -189,7 +189,7 @@ function seedDashboards() {
         ],
       ),
       history: [
-        { id: 1, at: '2026-09-08 17:10:00', actor: 'Eka Rahma', action: 'Changed status to Maintenance' },
+        { id: 1, at: '2026-09-08 17:10:00', actor: 'Eka Rahma', action: 'Changed status to Idle' },
         { id: 2, at: '2026-06-15 10:00:00', actor: 'Eka Rahma', action: 'Upgraded to version 3.0' },
         { id: 3, at: '2025-09-01 08:00:00', actor: 'System', action: 'Dashboard registered' },
       ],
@@ -199,7 +199,7 @@ function seedDashboards() {
       name: 'TRAXIS',
       code: 'TRX',
       description: 'Tracking and execution intelligence for cross-team delivery.',
-      status: 'draft',
+      status: 'idle',
       criticality: 'medium',
       owner: 'Gita Lestari',
       platform: 'Power BI',
@@ -226,7 +226,7 @@ function seedDashboards() {
       ),
       history: [
         { id: 1, at: '2026-09-07 12:00:00', actor: 'Gita Lestari', action: 'Added draft tasks pack' },
-        { id: 2, at: '2026-08-18 11:30:00', actor: 'System', action: 'Dashboard registered as Draft' },
+        { id: 2, at: '2026-08-18 11:30:00', actor: 'System', action: 'Dashboard registered as Idle' },
       ],
     },
     {
@@ -268,7 +268,7 @@ function seedDashboards() {
       name: 'EDM Core Monitor',
       code: 'EDM',
       description: 'Core EDM pipeline health, import failures, and batch latency.',
-      status: 'retired',
+      status: 'idle',
       criticality: 'low',
       owner: 'Budi Santoso',
       platform: 'Grafana',
@@ -290,7 +290,7 @@ function seedDashboards() {
         [{ id: 601, title: 'Migrate panels to GBO', priority: 'high', status: 'done' }],
       ),
       history: [
-        { id: 1, at: '2026-06-30 18:00:00', actor: 'Budi Santoso', action: 'Changed status to Retired' },
+        { id: 1, at: '2026-06-30 18:00:00', actor: 'Budi Santoso', action: 'Changed status to Idle' },
         { id: 2, at: '2024-06-01 09:00:00', actor: 'System', action: 'Dashboard registered' },
       ],
     },
@@ -337,7 +337,7 @@ function seedDashboards() {
       name: 'Marketing ROI',
       code: 'MKT',
       description: 'Campaign performance and ROI metrics.',
-      status: 'draft',
+      status: 'idle',
       criticality: 'medium',
       owner: 'Reza Pahlevi',
       platform: 'Looker',
@@ -375,7 +375,7 @@ function seedDashboards() {
       name: 'Compliance Report',
       code: 'CMP',
       description: 'Monthly regulatory compliance status.',
-      status: 'maintenance',
+      status: 'idle',
       criticality: 'high',
       owner: 'Hendra Wijaya',
       platform: 'Power BI',
@@ -590,34 +590,11 @@ export function addRegistryTask(dashboardId, payload) {
   return task
 }
 
-/* OLD CODE
-export function registryStatusLabel(status) {
-  switch (status) {
-    case 'active':
-      return 'Active'
-    case 'draft':
-      return 'Draft'
-    case 'maintenance':
-      return 'Maintenance'
-    case 'retired':
-      return 'Retired'
-    default:
-      return status
-  }
-}
-*/
-
 /** @param {RegistryStatus | string} status */
 export function registryStatusLabel(status) {
   switch (status) {
     case 'active':
       return 'Active'
-    case 'draft':
-      return 'Draft'
-    case 'maintenance':
-      return 'Maintenance'
-    case 'retired':
-      return 'Retired'
     case 'idle':
       return 'Idle'
     default:
@@ -653,20 +630,8 @@ export function itemStatusLabel(status) {
   }
 }
 
-/* OLD CODE
 export const registryStatusOptions = [
   { value: 'active', label: 'Active' },
-  { value: 'draft', label: 'Draft' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'retired', label: 'Retired' },
-]
-*/
-
-export const registryStatusOptions = [
-  { value: 'active', label: 'Active' },
-  { value: 'draft', label: 'Draft' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'retired', label: 'Retired' },
   { value: 'idle', label: 'Idle' },
 ]
 

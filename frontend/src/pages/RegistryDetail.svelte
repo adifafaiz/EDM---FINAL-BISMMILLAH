@@ -43,7 +43,7 @@
   let editRefresh = $state('')
   let editMsg = $state('')
 
-  let nextStatus = $state(/** @type {'active' | 'draft' | 'maintenance' | 'retired'} */ ('active'))
+  let nextStatus = $state(/** @type {'active' | 'idle'} */ ('active'))
   let statusMsg = $state('')
   let deleteMsg = $state('')
 
@@ -727,19 +727,9 @@
     color: #166534;
   }
 
-  .status-draft {
+  .status-idle {
     background: #e2e8f0;
     color: #475569;
-  }
-
-  .status-maintenance {
-    background: #fef3c7;
-    color: #92400e;
-  }
-
-  .status-retired {
-    background: #fee2e2;
-    color: #991b1b;
   }
 
   .crit-high {
